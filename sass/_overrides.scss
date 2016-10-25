@@ -1,0 +1,146 @@
+// Entry point for application specific styles
+
+// ------------------------------------------------------------
+// LOGIN
+// ------------------------------------------------------------
+
+#service-login {
+
+  input[type=text], .btn {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  input[type=text] {
+    font-size: 1.4rem;
+    height: 30px;
+    text-align: center;
+    color: #343434;
+  }
+}
+
+.player, .designer {
+
+  $recHeight: 100px;
+  $eltHeight: 30px;
+  $eltBottomMargin: 10px;
+  $btnBorderRadius: 15px;
+
+  font-size: 1.6em;
+  // background-color: #333;
+
+  .section-top {
+    // display: block;
+    // overflow: hidden;
+  }
+
+  .section-center, .section-bottom {
+    display: block;
+    position: absolute;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    max-height: 0;
+  }
+
+  select {
+    width: 100%;
+    height: $eltHeight;
+    margin-bottom: $eltBottomMargin;
+    margin-left: 16px;
+    // padding-left: 12px;
+  }
+
+  button {
+    border: 0px;
+    background-color: #def;
+    font-size: 1.6em;
+
+    width: 100%;
+    height: $eltHeight;
+    margin-bottom: $eltBottomMargin;
+
+    border-radius: $btnBorderRadius;
+    -moz-border-radius: $btnBorderRadius;
+    -webkit-border-radius: $btnBorderRadius;
+  }
+
+  canvas#likelihoods {
+    overflow: hidden;
+  }
+
+  .canvasDiv {
+    display: block;
+    position: relative;
+    clear: both;
+    max-height: 100px;
+    overflow: hidden;
+    margin-bottom: $eltBottomMargin;
+  }
+
+  hr {
+    display: inline-block;
+    width: 100%;
+  }
+
+  .toggleDiv, .selectDiv {
+    white-space: nowrap;
+    height: $eltHeight;
+    line-height: $eltHeight;
+    margin-bottom: $eltBottomMargin;
+  }
+
+  .toggleDiv {
+    float: left;
+    clear: both;
+  }
+
+  .selectDiv {
+    width: 100%;
+    display: flex;
+  }
+
+  .toggleBtn {
+    display: block;
+    text-align: center;
+    width: $eltHeight;
+    height: $eltHeight;
+    margin-right: 12px;
+    float: left;
+  }
+
+  .toggleBtn.active:before {
+    display: block;
+    // position: absolute;
+    padding: 0 0;
+    top: 0px;
+    left: 0px;
+    content: 'X';
+  }
+
+  #recBtn {
+    height: $recHeight;
+  }
+
+  #recBtn.active {
+    background-color: #d00;
+  }
+
+  .audioDiv {
+    float: left;
+    width: 100%;
+    height: $eltHeight;
+    // clear: both;
+  }
+
+  #audioSliderDiv {
+    display: flex;
+    height: $eltHeight;
+    line-height: $eltHeight;
+  }
+
+  input[type=range] {
+    width: 100%;
+  }
+}
