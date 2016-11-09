@@ -181,18 +181,17 @@ export default class DesignerExperience extends soundworks.Experience {
     }
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
+    this.login = this.require('login');
     this.loader = this.require('loader', {
       assetsDomain: assetsDomain,
       files: audioFiles
     });
-    this.login = this.require('login');
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
     });
 
     this.labels = Object.keys(classes);
     this.likeliest = undefined;
-    // this._soundIndex = -1;
 	}
 
   //=============================================//
@@ -362,8 +361,8 @@ export default class DesignerExperience extends soundworks.Experience {
     }
   }
 
-  _setGainFromIntensity(value) {
-    this.audioEngine.setGainFromIntensity(value);
+  _setGainFromIntensity(values) {
+    this.audioEngine.setGainFromIntensity(values[0]);
   }
 
   _enableSounds(onOff) {

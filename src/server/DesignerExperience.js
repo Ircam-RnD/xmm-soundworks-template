@@ -25,7 +25,10 @@ export default class DesignerExperience extends Experience {
 
     this._sendClientsList();
 
-    this.xmms[client] = new xmm('hhmm');
+    this.xmms[client] = new xmm('hhmm', {
+      states: 3,
+      relative_regularization: 0.5
+    });
     this._getModel(client);
 
     this.receive(client, 'phrase', this._onNewPhrase(client));

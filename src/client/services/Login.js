@@ -98,7 +98,8 @@ class Login extends Service {
     this._confirm = this._confirm.bind(this);
     this._logout = this._logout.bind(this);
 
-    this.platform = this.require('platform');
+    this.platform = this.require('platform', { features: ['web-audio'] });
+    this.checkin = this.require('checkin');
 	}
 
   //configure(options) 

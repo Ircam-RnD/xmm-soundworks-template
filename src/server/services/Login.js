@@ -9,7 +9,7 @@ class Login extends Service {
     const defaults = {};
     this.configure(defaults);
 
-    this._checkin = this.require('checkin');
+    this.checkin = this.require('checkin');
 	}
 
   /** @private */

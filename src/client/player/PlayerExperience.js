@@ -180,7 +180,7 @@ export default class PlayerExperience extends soundworks.Experience {
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
     this._hhmmDecoder = new HhmmDecoderLfo({
-      likelihoodWindow: 20,
+      likelihoodWindow: 5,
       callback: this._onModelFilter
     });
 
