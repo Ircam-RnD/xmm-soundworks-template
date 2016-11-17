@@ -27,7 +27,8 @@ export default class DesignerExperience extends Experience {
 
     this.xmms[client] = new xmm('hhmm', {
       states: 3,
-      relative_regularization: 0.5
+      relativeRegularization: 0.01,
+      transitionMode: 'leftright'
     });
     this._getModel(client);
 
@@ -41,16 +42,22 @@ export default class DesignerExperience extends Experience {
   }
 
   _getModel(client) {
+    let set;
     try {
-      const set = JSON.parse(fs.readFileSync(
+      set = JSON.parse(fs.readFileSync(
         `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
         'utf-8'
       ));
-      this.xmms[client].setTrainingSet(set);
-      this._updateModelAndSet(client);
     } catch (e) {
-      console.error(e);
+      if (e.code === 'ENOENT') {
+        set = fs.writeFileSync(
+          `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
+          'utf-8'
+        );
+      } else throw e;
     }
+    this.xmms[client].setTrainingSet(set);
+    this._updateModelAndSet(client);
   }
 
   _onNewPhrase(client) {

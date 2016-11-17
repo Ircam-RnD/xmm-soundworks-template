@@ -15,7 +15,6 @@
     "start": "node ./bin/runner --start",
     "transpile": "node ./bin/runner --transpile",
     "watch": "node ./bin/runner --watch",
-    "mongo": "./bin/mongo.sh",
     "plotset": "python ./bin/plotSet.py",
     "plotmodel": "python ./bin/plotModel.py"
   },
@@ -26,13 +25,13 @@
   "dependencies": {
     "babel-runtime": "^6.6.1",
     "debug": "^2.1.2",
-    "motion-features": "github:ircam-rnd/motion-features",
+    "motion-features": "ircam-rnd/motion-features",
     "soundworks": "collective-soundworks/soundworks#v1.1.1",
     "source-map-support": "^0.4.0",
-    "waves-lfo": "wavesjs/waves-lfo#v0.2.0",
-    "xmm-client": "ircam-rnd/xmm-client",
-    "xmm-lfo": "github:ircam-rnd/xmm-lfo#v0.2.0",
-    "xmm-node": "ircam-rnd/xmm-node"
+    "waves-lfo": "github:wavesjs/waves-lfo",
+    "xmm-client": "ircam-rnd/xmm-client#v0.3.0",
+    "xmm-lfo": "ircam-rnd/xmm-lfo",
+    "xmm-node": "ircam-rnd/xmm-node#v0.3.0"
   },
   "devDependencies": {
     "babel-core": "^6.6.5",

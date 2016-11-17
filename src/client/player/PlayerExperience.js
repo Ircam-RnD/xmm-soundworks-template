@@ -1,6 +1,8 @@
 import * as soundworks from 'soundworks/client';
-import * as lfo from 'waves-lfo';
+import * as lfo from 'waves-lfo/client';
 import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
+// import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
+// import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
 import MotionRenderer from '../shared/MotionRenderer';
@@ -109,6 +111,8 @@ export default class PlayerExperience extends soundworks.Experience {
 	constructor(assetsDomain) {
     super();
 
+    console.log('creating experience');
+
     const audioFiles = [];
     for (let label in classes) {
       audioFiles.push(classes[label]);
@@ -164,28 +168,23 @@ export default class PlayerExperience extends soundworks.Experience {
     this.view.onEnableSounds(this._enableSounds);
     this.view.onSetMasterVolume(this._setMasterVolume);
 
-    this.motionInput.addListener('devicemotion', this._motionCallback);
-
     //--------------------------------- LFO's --------------------------------//
-    this._devicemotionIn = new lfo.sources.EventIn({
+    this._devicemotionIn = new lfo.source.EventIn({
+      frameType: 'vector',
       frameSize: 6,
-      ctx: audioContext
+      frameRate: 1,//this.motionInput.period doesn't seem available anymore
+      description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
     });
     this._featurizer = new FeaturizerLfo({
     	descriptors: [ 'accIntensity' ],
       callback: this._setGainFromIntensity
     });
-    this._phraseRecorder = new PhraseRecorderLfo({
-      column_names: ['accelGravX', 'accelGravY', 'accelGravZ',
-                     'rotAlpha', 'rotBeta', 'rotGamma']      
-    });
     this._hhmmDecoder = new HhmmDecoderLfo({
-      likelihoodWindow: 5,
+      likelihoodWindow: 20,
       callback: this._onModelFilter
     });
 
     this._devicemotionIn.connect(this._featurizer);
-    this._devicemotionIn.connect(this._phraseRecorder);
     this._devicemotionIn.connect(this._hhmmDecoder);
     this._devicemotionIn.start();
 
@@ -198,6 +197,7 @@ export default class PlayerExperience extends soundworks.Experience {
 
   start() {
     super.start(); // don't forget this
+    console.log('starting');
 
     // console.log('starting');
     if (!this.hasStarted)
@@ -213,21 +213,35 @@ export default class PlayerExperience extends soundworks.Experience {
     this.view.setPreRender((ctx, dt) => {});
 
     this.audioEngine.start();
+    if (this.motionInput.isAvailable('devicemotion')) {
+      this.motionInput.addListener('devicemotion', this._motionCallback);
+    }
   }
 
   //================ callbacks : ================//
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    this._devicemotionIn.process(audioContext.currentTime, values, {});
+    // let values = [];
+    // for (let i = 0; i < tmpValues.length; i++) {
+    //   values.push(!tmpValues[i] ? 0 : tmpValues[i]);
+    // }
+    // if (!values) values = [0];
+    // const frame = {
+    //   time: new Date().getTime(),
+    //   data: values
+    // };
+    // this._devicemotionIn.processFrame(frame);
+    this._devicemotionIn.process(audioContext.currentTime, values);
     if (this._sendOscFlag) {
     	this._sendOsc('sensors', values);
     }
   }
 
   _onReceiveModel(model) {
-  	console.log(model);
-    this._hhmmDecoder.model = model;
+    // this._hhmmDecoder.model = model;
+
+    this._hhmmDecoder.params.set('model', model);
     console.log('received model');
   }
 
@@ -239,12 +253,15 @@ export default class PlayerExperience extends soundworks.Experience {
   	};
 		this.view.render('#modelsDiv');
 		this._currentModel = Object.keys(models)[0];
-  	this._hhmmDecoder.model = models[this._currentModel];
+  	// this._hhmmDecoder.model = models[this._currentModel];
+    this._hhmmDecoder.params.set('model', this._models[this._currentModel]);
+    console.log('received models');
   }
 
   _onModelChange(value) {
   	this._currentModel = value;
-  	this._hhmmDecoder.model = this._models[this._currentModel];
+  	// this._hhmmDecoder.model = this._models[this._currentModel];
+    this._hhmmDecoder.params.set('model', this._models[this._currentModel]);
   }
 
   _onModelFilter(res) {
@@ -258,7 +275,20 @@ export default class PlayerExperience extends soundworks.Experience {
       alphas: alphas,
       likelihoods: likelihoods
     }
-
+    let sum = 0;
+    for (let i = 0; i < likelihoods.length; i++) {
+      sum += likelihoods[i];
+      if(Number.isNaN(likelihoods[i])) {
+        console.log("NaN : likelihood n° : " + i);
+      }
+    }
+    if (sum != 1) {
+      
+      for (let i = 0; i < likelihoods.length; i++) {
+        console.log('likelihood n° ' + i + ' : ' + likelihoods[i]);
+      }
+      console.log('sum of likelihoods : ' + sum);
+    }
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {

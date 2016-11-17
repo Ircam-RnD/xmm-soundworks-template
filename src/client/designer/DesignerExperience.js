@@ -1,6 +1,8 @@
 import * as soundworks from 'soundworks/client';
-import * as lfo from 'waves-lfo';
+import * as lfo from 'waves-lfo/client';
 import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
+// import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
+// import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
 import { Login } from '../services/Login';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
@@ -12,45 +14,6 @@ const audioContext = soundworks.audioContext;
 class DesignerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
     super(template, content, events, options);
-  }
-
-  onInputChange(callback) {
-    this.installEvents({
-      'change #inputSelect': () => {
-        const inputs = this.$el.querySelector('#inputSelect');
-        callback(inputs.options[inputs.selectedIndex].value);
-      }
-    });
-  }
-
-  onToggleSendOscSensors(callback) {
-    this.installEvents({
-      'click #sendOscSensors': () => {
-        const btn = this.$el.querySelector('#sendOscSensors');
-        const active = btn.classList.contains('active');
-        if (!active) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-        callback(!active);
-      }
-    });
-  }
-
-  onToggleSendOscLikelihoods(callback) {
-    this.installEvents({
-      'click #sendOscLikelihoods': () => {
-        const btn = this.$el.querySelector('#sendOscLikelihoods');
-        const active = btn.classList.contains('active');
-        if (!active) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-        callback(!active);
-      }
-    });
   }
 
   onRecord(callback) {
@@ -115,15 +78,6 @@ class DesignerView extends soundworks.CanvasView {
       }
     });
   }
-
-  onSetMasterVolume(callback) {
-    this.installEvents({
-      'change #volumeSlider': () => {
-        const slider = this.$el.querySelector('#volumeSlider');
-        callback(slider.value);
-      }
-    });
-  }
 }
 
 const viewTemplate = `
@@ -147,15 +101,6 @@ const viewTemplate = `
         </div>
         <button id="clearLabelBtn">CLEAR LABEL</button>
         <button id="clearModelBtn">CLEAR MODEL</button>  
-        <!--
-        Sound control :
-        <div class="audioDiv">
-          <button id="playBtn" class="toggleBtn"></button>
-          <div id="audioSliderDiv">
-            <input type="range" id="volumeSlider"></input>
-          </div>
-        </div>
-        -->
         <div class="toggleDiv">
           <button id="playBtn" class="toggleBtn"></button>
           Enable sounds
@@ -163,10 +108,8 @@ const viewTemplate = `
       </div>
     </div>
     <div class="section-center flex-center">
-    	<!-- <canvas class="multislider" id="likelihoods"></canvas> -->
     </div>
     <div class="section-bottom flex-middle">
-    	<!-- nothing here -->
     </div>
   </div>
 `;
@@ -215,43 +158,31 @@ export default class DesignerExperience extends soundworks.Experience {
     this._onSendPhrase = this._onSendPhrase.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
     this._onClearModel = this._onClearModel.bind(this);
-
     this._onReceiveModel = this._onReceiveModel.bind(this);
     this._onModelFilter = this._onModelFilter.bind(this);   
     this._motionCallback = this._motionCallback.bind(this);
-
-    this._setGainFromIntensity = this._setGainFromIntensity.bind(this);
+    this._intensityCallback = this._intensityCallback.bind(this);
     this._enableSounds = this._enableSounds.bind(this);
-    this._setMasterVolume = this._setMasterVolume.bind(this);
-
-    this.view.onInputChange((val) => { this._input = val; });
-    this.view.onToggleSendOscSensors((val) => {
-      this._sendOscSensors = val;
-    });
-    this.view.onToggleSendOscLikelihoods((val) => {
-      this._sendOscLikelihoods = val;
-    });
 
     this.view.onRecord(this._onRecord);
     this.view.onSendPhrase(this._onSendPhrase);
     this.view.onClearLabel(this._onClearLabel);
     this.view.onClearModel(this._onClearModel);
     this.view.onEnableSounds(this._enableSounds);
-    this.view.onSetMasterVolume(this._setMasterVolume);
-
-    this.motionInput.addListener('devicemotion', this._motionCallback);
 
     //--------------------------------- LFO's --------------------------------//
-    this._devicemotionIn = new lfo.sources.EventIn({
+    this._devicemotionIn = new lfo.source.EventIn({
+      frameType: 'vector',
       frameSize: 6,
-      ctx: audioContext
+      frameRate: 1,//this.motionInput.period doesn't seem available anymore
+      description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
     });
     this._featurizer = new FeaturizerLfo({
     	descriptors: [ 'accIntensity' ],
-      callback: this._setGainFromIntensity
+      callback: this._intensityCallback
     });
     this._phraseRecorder = new PhraseRecorderLfo({
-      column_names: ['accelGravX', 'accelGravY', 'accelGravZ',
+      columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
     this._hhmmDecoder = new HhmmDecoderLfo({
@@ -287,6 +218,9 @@ export default class DesignerExperience extends soundworks.Experience {
     this.view.setPreRender((ctx, dt) => {});
 
     this.audioEngine.start();
+    if (this.motionInput.isAvailable('devicemotion')) {
+      this.motionInput.addListener('devicemotion', this._motionCallback);
+    }
   }
 
   _onRecord(cmd) {
@@ -302,11 +236,11 @@ export default class DesignerExperience extends soundworks.Experience {
   }
 
   _onSendPhrase(label) {
-    this._phraseRecorder.label = label;
+    this._phraseRecorder.setPhraseLabel(label);
     let phrase = this._phraseRecorder.getRecordedPhrase();
     if (phrase.length > 0) {
       if (confirm('send phrase with label ' + label + ' ?')) {
-        this.send('phrase', { cmd: 'add', data: phrase }); // will this still work ?
+        this.send('phrase', { cmd: 'add', data: phrase });
       }
     } else {
       alert('cannot send empty phrases');
@@ -330,12 +264,17 @@ export default class DesignerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    this._devicemotionIn.process(audioContext.currentTime, values, {});
+    // console.log(values);
+    // const frame = {
+    //   time: new Date().getTime(),
+    //   data: values
+    // };
+    // this._devicemotionIn.processFrame(frame);
+    this._devicemotionIn.process(audioContext.currentTime, values);
   }
 
   _onReceiveModel(model) {
-  	console.log(model);
-    this._hhmmDecoder.model = model;
+    this._hhmmDecoder.params.set('model', model);
     console.log('received model');
   }
 
@@ -361,15 +300,11 @@ export default class DesignerExperience extends soundworks.Experience {
     }
   }
 
-  _setGainFromIntensity(values) {
+  _intensityCallback(values) {
     this.audioEngine.setGainFromIntensity(values[0]);
   }
 
   _enableSounds(onOff) {
     this.audioEngine.enableSounds(onOff);
-  }
-
-  _setMasterVolume(volume) {
-    this.audioEngine.setMasterVolume(volume);
   }
 }
