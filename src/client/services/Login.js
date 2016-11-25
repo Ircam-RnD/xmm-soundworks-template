@@ -126,8 +126,8 @@ class Login extends Service {
     this.receive('confirm', this._onLoginConfirmed);
     this.receive('logout', this._onLogoutResponse);
 
-    // const key = 'soundworks:service:login:userName'; // too long for safari :(
-    const key = 'soundworks:userName';
+    const key = 'soundworks:service:login:userName'; // too long for safari :(
+    // const key = 'soundworks:userName';
     const storedUserName = localStorage.getItem(key);
     // const storedUserName = localStorage.getItem('soundworks:service:login:userName');
 
@@ -155,8 +155,7 @@ class Login extends Service {
   }
 
   getUserName() {
-    // return localStorage.getItem('soundworks:service:login:userName');
-    return localStorage.getItem('soundworks:userName');
+    return localStorage.getItem('soundworks:service:login:userName');
   }
 
 	_login(userName) {
@@ -174,8 +173,7 @@ class Login extends Service {
 	_onLoginResponse(userName) {
     this._userName = userName;
     console.log('login response : ' + this._userName);
-		// localStorage.setItem('soundworks:service:login:userName', userName);
-    localStorage.setItem('soundworks:userName', userName);
+		localStorage.setItem('soundworks:service:login:userName', userName);
 		this._defaultViewContent.logged = true;
     this._defaultViewContent.userName = userName;
     this.view.render();
@@ -188,8 +186,7 @@ class Login extends Service {
 
 	_onLogoutResponse(userName) {
 		this._userName = null;
-    // localStorage.removeItem('soundworks:service:login:userName');
-    localStorage.removeItem('soundworks:userName');
+    localStorage.removeItem('soundworks:service:login:userName');
 		this._defaultViewContent.logged = false;
     this._defaultViewContent.userName = null;
     this.view.render();
