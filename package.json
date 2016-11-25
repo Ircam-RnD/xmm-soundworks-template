@@ -29,9 +29,9 @@
     "soundworks": "collective-soundworks/soundworks#v1.1.1",
     "source-map-support": "^0.4.0",
     "waves-lfo": "github:wavesjs/waves-lfo",
-    "xmm-client": "ircam-rnd/xmm-client#v0.3.0",
+    "xmm-client": "ircam-rnd/xmm-client",
     "xmm-lfo": "ircam-rnd/xmm-lfo",
-    "xmm-node": "ircam-rnd/xmm-node#v0.3.0"
+    "xmm-node": "ircam-rnd/xmm-node"
   },
   "devDependencies": {
     "babel-core": "^6.6.5",

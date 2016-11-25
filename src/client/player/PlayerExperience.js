@@ -283,7 +283,6 @@ export default class PlayerExperience extends soundworks.Experience {
       }
     }
     if (sum != 1) {
-      
       for (let i = 0; i < likelihoods.length; i++) {
         console.log('likelihood n° ' + i + ' : ' + likelihoods[i]);
       }
