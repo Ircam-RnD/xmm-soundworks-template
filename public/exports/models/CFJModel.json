@@ -1,0 +1,37 @@
+{
+  "configuration": {
+    "default_parameters": {
+      "absolute_regularization": 0.01,
+      "covariance_mode": 0,
+      "gaussians": 1,
+      "hierarchical": true,
+      "regression_estimator": 0,
+      "relative_regularization": 0.01,
+      "states": 3,
+      "transition_mode": 1
+    },
+    "multiClass_regression_estimator": 0,
+    "multithreading": 0
+  },
+  "exit_transition": [],
+  "models": [],
+  "prior": [],
+  "shared_parameters": {
+    "bimodal": false,
+    "column_names": [
+      "accelGravX",
+      "accelGravY",
+      "accelGravZ",
+      "rotAlpha",
+      "rotBeta",
+      "rotGamma"
+    ],
+    "dimension": 6,
+    "dimension_input": 0,
+    "em_algorithm_max_iterations": 0,
+    "em_algorithm_min_iterations": 10,
+    "em_algorithm_percent_chg": 0.01,
+    "likelihood_window": 1
+  },
+  "transition": []
+}

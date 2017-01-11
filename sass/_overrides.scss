@@ -19,12 +19,13 @@
   }
 }
 
-.player, .designer {
+.player, .designer, .superdesigner {
 
   $recHeight: 100px;
   $eltHeight: 30px;
   $eltBottomMargin: 10px;
   $btnBorderRadius: 15px;
+  $navHeight: 40px;
 
   font-size: 1.6em;
   // background-color: #333;
@@ -32,6 +33,24 @@
   .section-top {
     // display: block;
     // overflow: hidden;
+  }
+
+  #nav {
+    z-index: 2;
+    display: block;
+    position: relative;
+    background-color: #444;
+    height: $navHeight;
+  }
+
+  #openConfigBtn {
+    position: relative;
+    display: block; // Display block instead of inline
+    top: 0px;
+    text-align: center;
+    text-decoration: none;
+    color: #919191;
+    font-size: 30px;
   }
 
   .section-center, .section-bottom {
@@ -44,12 +63,41 @@
     max-height: 0;
   }
 
-  select {
+  .section-overlay {
+    height: 0;
+    width: 100%;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: $navHeight;
+    background-color: #222;
+    // background-color: rgb(50,50,50); // fallback
+    // background-color: rgba(50,50,50,0.9);
+    // overflow-x: hidden;
+    overflow: hidden;
+    transition: 0.3s;
+  }
+
+  .section-overlay.active {
+    height: 100%;
+  }
+
+  .overlay-content {
+    // position: absolute;
+    margin: 10px;
+  }
+
+  select, input {
     width: 100%;
     height: $eltHeight;
     margin-bottom: $eltBottomMargin;
     margin-left: 16px;
     // padding-left: 12px;
+  }
+
+  input {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   button {
@@ -84,14 +132,18 @@
     width: 100%;
   }
 
-  .toggleDiv, .selectDiv {
+  p {
+    text-align: center;
+  }
+
+  .toggleDiv, .selectDiv, .triggerDiv {
     white-space: nowrap;
     height: $eltHeight;
     line-height: $eltHeight;
     margin-bottom: $eltBottomMargin;
   }
 
-  .toggleDiv {
+  .toggleDiv, .triggerDiv {
     float: left;
     clear: both;
   }
@@ -101,7 +153,7 @@
     display: flex;
   }
 
-  .toggleBtn {
+  .toggleBtn, .triggerBtn {
     display: block;
     text-align: center;
     width: $eltHeight;
@@ -117,6 +169,10 @@
     top: 0px;
     left: 0px;
     content: 'X';
+  }
+
+  .triggerBtn.active:before {
+    background-color: #00f; //if we want to make it blink
   }
 
   #recBtn {

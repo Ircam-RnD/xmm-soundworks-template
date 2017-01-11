@@ -1,0 +1,14 @@
+{
+  "bimodal": false,
+  "column_names": [
+    "accelGravX",
+    "accelGravY",
+    "accelGravZ",
+    "rotAlpha",
+    "rotBeta",
+    "rotGamma"
+  ],
+  "dimension": 6,
+  "dimension_input": 0,
+  "phrases": []
+}

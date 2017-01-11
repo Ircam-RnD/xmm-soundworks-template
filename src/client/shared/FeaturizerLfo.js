@@ -1,4 +1,4 @@
-import BaseLfo from 'waves-lfo/common/core/BaseLfo';
+import { BaseLfo } from 'waves-lfo/core';
 import { MotionFeatures } from 'motion-features';
 
 // motion-input indices :
