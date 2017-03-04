@@ -16,10 +16,7 @@ export default class DesignerExperience extends Experience {
   }
 
   // if anything needs to append when the experience starts
-  start() {
-    // this._onNewPhrase = this._onNewPhrase.bind(this);
-    // this._onClearOperation = this._onClearOperation.bind(this);
-  }
+  start() {}
 
   // if anything needs to happen when a client enters the performance (*i.e.*
   // starts the experience on the client side), write it in the `enter` method
