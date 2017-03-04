@@ -1,6 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
+import { PhraseRecorderLfo, HhmmDecoderLfo, GmmDecoderLfo } from 'xmm-lfo';
 // import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
 // import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
 import { Login } from '../services/Login';
@@ -185,6 +185,7 @@ export default class DesignerExperience extends soundworks.Experience {
       columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
+    // this._hhmmDecoder = new HhmmDecoderLfo({
     this._hhmmDecoder = new HhmmDecoderLfo({
       likelihoodWindow: 20,
       callback: this._onModelFilter
@@ -282,11 +283,11 @@ export default class DesignerExperience extends soundworks.Experience {
     const likelihoods = res.likelihoods;
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
-    const alphas = res.alphas[likeliest];
+    //const alphas = res.alphas[likeliest];
     const newRes = {
       label: label,
       likeliest: likeliest,
-      alphas: alphas,
+      //alphas: alphas,
       likelihoods: likelihoods
     }
 

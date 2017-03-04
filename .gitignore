@@ -1,3 +1,8 @@
+/public/exports/models/*
+!/public/exports/models/exampleModel.json
+/public/exports/sets/*
+!/public/exports/sets/exampleTrainingSet.json
+
 # Transpiled files and dependencies
 /node_modules
 /public/js

@@ -16,7 +16,10 @@ export default class DesignerExperience extends Experience {
   }
 
   // if anything needs to append when the experience starts
-  start() {}
+  start() {
+    // this._onNewPhrase = this._onNewPhrase.bind(this);
+    // this._onClearOperation = this._onClearOperation.bind(this);
+  }
 
   // if anything needs to happen when a client enters the performance (*i.e.*
   // starts the experience on the client side), write it in the `enter` method
@@ -26,7 +29,7 @@ export default class DesignerExperience extends Experience {
     this._sendClientsList();
 
     this.xmms[client] = new xmm('hhmm', {
-      states: 3,
+      states: 1,
       relativeRegularization: 0.01,
       transitionMode: 'leftright'
     });
@@ -73,11 +76,13 @@ export default class DesignerExperience extends Experience {
       const cmd = args.cmd;
       switch (cmd) {
         case 'label': {
+          console.log('clearlabel');
           this.xmms[client].removePhrasesOfLabel(args.data);
         }
         break;
 
         case 'model': {
+          console.log('clearmodel');
           this.xmms[client].clearTrainingSet();
         }
 
@@ -95,12 +100,15 @@ export default class DesignerExperience extends Experience {
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
+
       fs.writeFileSync(
        `./public/exports/models/${client.activities['service:login'].userName}Model.json`,
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
+
       this.send(client, 'model', model);
+      //console.log(JSON.stringify(model));
     });    
   }
 
