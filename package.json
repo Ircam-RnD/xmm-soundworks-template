@@ -28,9 +28,9 @@
     "motion-features": "ircam-rnd/motion-features",
     "soundworks": "collective-soundworks/soundworks#v1.1.1",
     "source-map-support": "^0.4.0",
-    "xmm-node": "github:ircam-rnd/xmm-node",
     "waves-lfo": "github:wavesjs/waves-lfo",
-    "xmm-lfo": "github:ircam-rnd/xmm-lfo"
+    "xmm-lfo": "github:ircam-rnd/xmm-lfo",
+    "xmm-node": "github:ircam-rnd/xmm-node"
   },
   "devDependencies": {
     "babel-core": "^6.6.5",

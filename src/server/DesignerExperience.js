@@ -28,6 +28,7 @@ export default class DesignerExperience extends Experience {
     this.xmms[client] = new xmm('hhmm', {
       states: 1,
       relativeRegularization: 0.01,
+      //absoluteRegularization: 0.01,
       transitionMode: 'leftright'
     });
     this._getModel(client);

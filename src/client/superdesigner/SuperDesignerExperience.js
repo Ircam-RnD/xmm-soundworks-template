@@ -1,6 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
+import { PhraseRecorderLfo, HhmmDecoderLfo, GmmDecoderLfo } from 'xmm-lfo';
 // import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
 // import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
 import { Login } from '../services/Login';
@@ -21,9 +21,32 @@ class SuperDesignerView extends soundworks.CanvasView {
       'click #openConfigBtn': () => {
         const div = this.$el.querySelector('.section-overlay');
         const active = div.classList.contains('active');
+
         if (!active) {
           div.classList.add('active');
         } else {
+          elt = this.$el.querySelector('#modelSelect');
+          const type = elt.options[elt.selectedIndex].value;
+
+          const config = {};
+          let elt;
+          elt = this.$el.querySelector('#gaussSelect');
+          config['gaussians'] = Number(elt.options[elt.selectedIndex].value);
+          elt = this.$el.querySelector('#covModeSelect');
+          config['covarianceMode'] = elt.options[elt.selectedIndex].value;
+          elt = this.$el.querySelector('#absReg');
+          config['absoluteRegularization'] = Number(elt.value);
+          elt = this.$el.querySelector('#relReg');
+          config['relativeRegularization'] = Number(elt.value);
+          elt = this.$el.querySelector('#hierarchicalSelect');
+          config['hierarchical'] = (elt.options[elt.selectedIndex].value === 'yes');
+          elt = this.$el.querySelector('#transModeSelect');
+          config['transitionMode'] = elt.options[elt.selectedIndex].value;
+          elt = this.$el.querySelector('#statesSelect');
+          config['states'] = Number(elt.options[elt.selectedIndex].value);
+
+          callback(type, config);
+
           div.classList.remove('active');
         }
       }
@@ -98,73 +121,81 @@ const viewTemplate = `
   <div class="foreground">
 
     <div id="nav">
-      <a href="#" id="openConfigBtn">&#9776;</a>
-    </div>
-
-    <div class="section-overlay">
-      
-      <div class="overlay-content">
-        <p> Global configuration </p>
-        <br />
-        <div class="selectDiv"> Model type :
-          <select id="modelSelect">
-            <option value="gmm">gmm</option>
-            <option value="hhmm">hhmm</option>
-          </select>
-        </div>
-        <div class="selectDiv"> Gaussians :
-          <select id="gaussSelect">
-            <% for (var i = 0; i < 10; i++) { %>
-              <option value="<%= i+1 %>">
-                <%= i+1 %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <div class="selectDiv"> Covariance mode :
-          <select id="covModeSelect">
-            <option value="0">full</option>
-            <option value="1">diagonal</option>
-          </select>
-        </div>        
-        <div class="selectDiv"> Absolute regularization :
-          <input type="text" value="0.01">
-          </input>
-        </div>        
-        <div class="selectDiv"> Relative regularization :
-          <input type="text" value="0.01">
-          </input>
-        </div>        
-
-        <hr>
-        <p> Hhmm parameters </p>
-        <br />
-        <div class="selectDiv"> Hierarchical :
-          <select id="transModeSelect">
-            <option value="1">yes</option>
-            <option value="0">no</option>
-           </select>
-        </div>        
-        <div class="selectDiv"> States :
-          <select id="statesSelect">
-            <% for (var i = 0; i < 20; i++) { %>
-              <option value="<%= i+1 %>">
-                <%= i+1 %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <div class="selectDiv"> Transition mode :
-          <select id="transModeSelect">
-            <option value="0">ergodic</option>
-            <option value="1">left-right</option>
-          </select>
-        </div>        
-      </div>
+      <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
+      <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
     </div>
 
     <div class="section-top flex-middle">
-    	<div>
+      <div class="section-overlay">
+        
+        <div class="overlay-content">
+          <p> Global configuration </p>
+          <br />
+          <div class="selectDiv"> Model type :
+            <select id="modelSelect">
+              <option value="gmm">gmm</option>
+              <option value="hhmm">hhmm</option>
+            </select>
+          </div>
+          <div class="selectDiv"> Gaussians :
+            <select id="gaussSelect">
+              <% for (var i = 0; i < 10; i++) { %>
+                <option value="<%= i+1 %>">
+                  <%= i+1 %>
+                </option>
+              <% } %>
+            </select>
+          </div>
+          <div class="selectDiv"> Covariance mode :
+            <select id="covModeSelect">
+              <option value="full">full</option>
+              <option value="diagonal">diagonal</option>
+            </select>
+          </div>        
+          <div class="selectDiv"> Absolute regularization :
+            <input id="absReg" type="text" value="0.01">
+            </input>
+          </div>        
+          <div class="selectDiv"> Relative regularization :
+            <input id="relReg" type="text" value="0.01">
+            </input>
+          </div>        
+
+          <hr>
+          <p> Hhmm parameters </p>
+          <br />
+          <div class="selectDiv"> Hierarchical :
+            <select id="hierarchicalSelect">
+              <option value="true">yes</option>
+              <option value="false">no</option>
+             </select>
+          </div>        
+          <div class="selectDiv"> States :
+            <select id="statesSelect">
+              <% for (var i = 0; i < 20; i++) { %>
+                <option value="<%= i+1 %>">
+                  <%= i+1 %>
+                </option>
+              <% } %>
+            </select>
+          </div>
+          <div class="selectDiv"> Transition mode :
+            <select id="transModeSelect">
+              <option value="ergodic">ergodic</option>
+              <option value="leftright">leftright</option>
+            </select>
+          </div>        
+          <div class="selectDiv"> Regression estimator :
+            <select id="regressEstimSelect">
+              <option value="full">full</option>
+              <option value="windowed">windowed</option>
+              <option value="likeliest">likeliest</option>
+            </select>
+          </div>        
+        </div>
+      </div>
+
+    	<div class="section-underlay">
       	<!-- <p class="big"><%= title %></p> -->
         <div class="selectDiv"> Label :
           <select id="labelSelect">
@@ -189,10 +220,6 @@ const viewTemplate = `
       </div>
     </div>
 
-    <div class="section-center flex-center">
-    </div>
-    <div class="section-bottom flex-middle">
-    </div>
   </div>
 `;
 
@@ -236,6 +263,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
     this.view = this.createView();
 
+    this._onConfig = this._onConfig.bind(this);
     this._onRecord = this._onRecord.bind(this);
     this._onSendPhrase = this._onSendPhrase.bind(this);
     this._onClearLabel = this._onClearLabel.bind(this);
@@ -246,11 +274,11 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     this._intensityCallback = this._intensityCallback.bind(this);
     this._enableSounds = this._enableSounds.bind(this);
 
+    this.view.onConfig(this._onConfig);
     this.view.onRecord(this._onRecord);
     this.view.onSendPhrase(this._onSendPhrase);
     this.view.onClearLabel(this._onClearLabel);
     this.view.onClearModel(this._onClearModel);
-    this.view.onConfig(null);
     this.view.onEnableSounds(this._enableSounds);
 
     //--------------------------------- LFO's --------------------------------//
@@ -268,14 +296,14 @@ export default class SuperDesignerExperience extends soundworks.Experience {
       columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
-    this._hhmmDecoder = new HhmmDecoderLfo({
+    this._xmmDecoder = new HhmmDecoderLfo({
       likelihoodWindow: 20,
       callback: this._onModelFilter
     });
 
     this._devicemotionIn.connect(this._featurizer);
     this._devicemotionIn.connect(this._phraseRecorder);
-    this._devicemotionIn.connect(this._hhmmDecoder);
+    this._devicemotionIn.connect(this._xmmDecoder);
     this._devicemotionIn.start();
 
     //----------------- RECEIVE -----------------//
@@ -301,9 +329,15 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     this.view.setPreRender((ctx, dt) => {});
 
     this.audioEngine.start();
+
     if (this.motionInput.isAvailable('devicemotion')) {
       this.motionInput.addListener('devicemotion', this._motionCallback);
     }
+  }
+
+  _onConfig(type, config) {
+    this.send('configuration', { type: type, config: config });
+    // console.log(config);
   }
 
   _onRecord(cmd) {
@@ -347,18 +381,50 @@ export default class SuperDesignerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    // console.log(values);
-    // const frame = {
-    //   time: new Date().getTime(),
-    //   data: values
-    // };
-    // this._devicemotionIn.processFrame(frame);
     this._devicemotionIn.process(audioContext.currentTime, values);
   }
 
   _onReceiveModel(model) {
-    this._hhmmDecoder.params.set('model', model);
+    const config = model.configuration.default_parameters;
+    const arg = { likelihoodWindow: 20, callback: this._onModelFilter };
+
+    if (config.states !== undefined && config.states !== null) {
+      config.modelType = 'hhmm';
+      this._xmmDecoder = new HhmmDecoderLfo(arg);
+    } else {
+      config.modelType = 'gmm';
+      this._xmmDecoder = new GmmDecoderLfo(arg);
+    }
+
+    this._updateConfigFromModel(config);
+    this._xmmDecoder.params.set('model', model);
     console.log('received model');
+  }
+
+  _updateConfigFromModel(config) {
+    const v = this.view.$el;
+    let elt;
+
+    elt = v.querySelector('#modelSelect');
+    elt.selectedIndex = (config.modelType === 'hhmm') ? 1 : 0;
+    console.log(config.modelType);
+
+    elt = v.querySelector('#gaussSelect');
+    elt.selectedIndex = config.gaussians - 1;
+    elt = v.querySelector('#covModeSelect');
+    elt.selectedIndex = config.covariance_mode;
+    elt = v.querySelector('#absReg');
+    elt.value = config.absolute_regularization;
+    elt = v.querySelector('#relReg');
+    elt.value = config.relative_regularization;
+
+    elt = v.querySelector('#hierarchicalSelect');
+    elt.selectedIndex = config.hierarchical ? 0 : 1;
+    elt = v.querySelector('#transModeSelect');
+    elt.selectedIndex = config.transition_mode ? config.transition_mode : 0;
+    elt = v.querySelector('#statesSelect');
+    elt.selectedIndex = config.states ? config.states - 1 : 0;
+    //this.view.render();
   }
 
   _onModelFilter(res) {

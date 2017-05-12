@@ -32,6 +32,7 @@ export default class SuperDesignerExperience extends Experience {
     });
     this._getModel(client);
 
+    this.receive(client, 'configuration', this._onNewConfig(client));
     this.receive(client, 'phrase', this._onNewPhrase(client));
     this.receive(client, 'clear', this._onClearOperation(client));
   }
@@ -66,6 +67,17 @@ export default class SuperDesignerExperience extends Experience {
       this.xmms[client].addPhrase(phrase);
       this._updateModelAndSet(client);
     }
+  }
+
+  _onNewConfig(client) {
+    return (args) => {
+      const type = args.type;
+      const config = args.config;
+      const trainingSet = this.xmms[client].getTrainingSet();
+      this.xmms[client] = new xmm(type, config);
+      this.xmms[client].setTrainingSet(trainingSet);
+      this._updateModelAndSet(client);
+    };
   }
 
   _onClearOperation(client) {

@@ -281,6 +281,7 @@ export default class DesignerExperience extends soundworks.Experience {
 
   _onModelFilter(res) {
     const likelihoods = res.likelihoods;
+    //console.log(likelihoods);
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
     //const alphas = res.alphas[likeliest];
