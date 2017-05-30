@@ -3,7 +3,7 @@ import * as lfo from 'waves-lfo/client';
 import { PhraseRecorderLfo, GmmDecoderLfo, HhmmDecoderLfo, XmmDecoderLfo } from 'xmm-lfo';
 // import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
 // import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
-import { Login } from '../services/Login';
+import { ComoNodeLogin } from '../services/ComoNodeLogin';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
 import MotionRenderer from '../shared/MotionRenderer';
@@ -11,7 +11,7 @@ import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
 
-class SuperDesignerView extends soundworks.CanvasView {
+class ComoDesignerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
     super(template, content, events, options);
   }
@@ -208,8 +208,8 @@ const viewTemplate = `
         </div>
       </div>
 
-    	<div class="section-underlay">
-      	<!-- <p class="big"><%= title %></p> -->
+      <div class="section-underlay">
+        <!-- <p class="big"><%= title %></p> -->
         <div class="selectDiv"> Label :
           <select id="labelSelect">
             <% for (var prop in classes) { %>
@@ -240,8 +240,8 @@ const viewTemplate = `
   </div>
 `;
 
-export default class SuperDesignerExperience extends soundworks.Experience {
-	constructor(assetsDomain) {
+export default class ComoDesignerExperience extends soundworks.Experience {
+  constructor(assetsDomain) {
     super();
 
     const audioFiles = [];
@@ -250,7 +250,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     }
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
-    this.login = this.require('login');
+    this.login = this.require('comonodelogin');
     this.loader = this.require('loader', {
       assetsDomain: assetsDomain,
       files: audioFiles
@@ -261,7 +261,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
 
     this.labels = Object.keys(classes);
     this.likeliest = undefined;
-	}
+  }
 
   //=============================================//
 
@@ -273,10 +273,10 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     // initialize the view
     this.viewTemplate = viewTemplate;
     this.viewContent = {
-    	title: 'play !',
+      title: 'play !',
       classes: classes
     };
-    this.viewCtor = SuperDesignerView;
+    this.viewCtor = ComoDesignerView;
     this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
     this.view = this.createView();
 
@@ -306,7 +306,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
       description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
     });
     this._featurizer = new FeaturizerLfo({
-    	descriptors: [ 'accIntensity' ],
+      descriptors: [ 'accIntensity' ],
       callback: this._intensityCallback
     });
     this._phraseRecorder = new PhraseRecorderLfo({
@@ -402,25 +402,6 @@ export default class SuperDesignerExperience extends soundworks.Experience {
 
   _onReceiveModel(model) {
     const config = model ? model.configuration.default_parameters : {};
-
-    /*
-    const arg = { likelihoodWindow: 20, callback: this._onModelFilter };
-
-    this._devicemotionIn.stop();
-    this._devicemotionIn.disconnect(this._xmmDecoder);
-
-    if (config.states !== undefined && config.states !== null) {
-      config.modelType = 'hhmm';
-      this._xmmDecoder = new HhmmDecoderLfo(arg);
-    } else {
-      config.modelType = 'gmm';
-      this._xmmDecoder = new GmmDecoderLfo(arg);
-    }
-
-    this._devicemotionIn.connect(this._xmmDecoder);
-    this._devicemotionIn.start();
-    //*/
-
     config.modelType = config.states ? 'hhmm' : 'gmm';
     this._updateConfigFromModel(config);
     this._xmmDecoder.params.set('model', model);
@@ -477,7 +458,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {
-    	this.likeliest = label;
+      this.likeliest = label;
       console.log('changed gesture to : ' + label);
       const i = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(i);

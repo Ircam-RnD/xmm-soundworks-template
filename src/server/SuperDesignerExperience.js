@@ -25,11 +25,11 @@ export default class SuperDesignerExperience extends Experience {
 
     this._sendClientsList();
 
-    this.xmms[client] = new xmm('hhmm', {
-      states: 3,
-      relativeRegularization: 0.01,
-      transitionMode: 'leftright'
-    });
+    //this.xmms[client] = new xmm('hhmm');//'hhmm', {
+    //   states: 3,
+    //   relativeRegularization: 0.01,
+    //   transitionMode: 'leftright'
+    // });
     this._getModel(client);
 
     this.receive(client, 'configuration', this._onNewConfig(client));
@@ -53,10 +53,30 @@ export default class SuperDesignerExperience extends Experience {
       if (e.code === 'ENOENT') {
         set = fs.writeFileSync(
           `./public/exports/sets/${client.activities['service:login'].userName}TrainingSet.json`,
+          JSON.stringify({}),
           'utf-8'
         );
       } else throw e;
     }
+
+    let config;
+    try {
+      config = JSON.parse(fs.readFileSync(
+        `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+        'utf-8'
+      ));
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        config = fs.writeFileSync(
+          `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+          JSON.stringify({}),
+          'utf-8'          
+        );
+      } else throw e;
+    }
+
+    if (!config) config = {};
+    this.xmms[client] = new xmm(config.states ? 'hhmm' : 'gmm', config)
     this.xmms[client].setTrainingSet(set);
     this._updateModelAndSet(client);
   }
@@ -71,9 +91,11 @@ export default class SuperDesignerExperience extends Experience {
 
   _onNewConfig(client) {
     return (args) => {
+      // console.log(args);
       const type = args.type;
       const config = args.config;
       const trainingSet = this.xmms[client].getTrainingSet();
+      //console.log(config);
       this.xmms[client] = new xmm(type, config);
       this.xmms[client].setTrainingSet(trainingSet);
       this._updateModelAndSet(client);
@@ -107,11 +129,19 @@ export default class SuperDesignerExperience extends Experience {
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
+
+      fs.writeFileSync(
+       `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
+       JSON.stringify(this.xmms[client].getConfig(), null, 2),
+       'utf-8'
+      );
+
       fs.writeFileSync(
        `./public/exports/models/${client.activities['service:login'].userName}Model.json`,
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
+
       this.send(client, 'model', model);
     });    
   }

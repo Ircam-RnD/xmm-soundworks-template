@@ -4,18 +4,28 @@
 // LOGIN
 // ------------------------------------------------------------
 
-#service-login {
+#service-login, #service-comonodelogin, #service-comobrowserlogin {
 
-  input[type=text], .btn {
+  input[type=text], input[type=password], .btn {
     width: 100%;
     margin-bottom: 12px;
   }
 
-  input[type=text] {
+  input[type=text], input[type=password] {
     font-size: 1.4rem;
     height: 30px;
     text-align: center;
     color: #343434;
+  }
+
+  label {
+    font-size: 1.4rem;
+    color: #bbb;
+  }
+
+  #errorMessage {
+    font-size: 1.4rem;
+    color: #f00;
   }
 }
 
@@ -43,6 +53,7 @@ $maxWidth: 800px;
   $configEltHeight: 25px;
   $btnBorderRadius: 15px;
   $backgroundColor: #262626;
+  $navBackgroundColor: #444;
 
   font-size: 1.4em;
   background-color: $backgroundColor;
@@ -57,7 +68,7 @@ $maxWidth: 800px;
     width: 100%;
     display: block;
     position: fixed;
-    background-color: #444;
+    background-color: $navBackgroundColor;
     height: $navHeight;
   }
 
@@ -105,22 +116,22 @@ $maxWidth: 800px;
     z-index: 1;
     left: 0;
     top: 0;
-    background-color: $backgroundColor;
+    background-color: $navBackgroundColor;
     overflow: hidden;
-    transition: 0.3s;
-    margin-top: $navHeight;
+    //transition: 0.3s;
   }
 
   .section-overlay.active {
-    transition: 0.5s;
-    height: 100%;
+    height: inherit;
+    // height: 100%;
     max-height: 1200px;
+    margin-top: $navHeight;
   }
 
   .overlay-content {
     // http://stackoverflow.com/questions/114543/how-to-horizontally-center-a-div-in-another-div
     position: relative;
-    padding: 10px;
+    padding: 0px 10px 0px 10px;
     max-width: $maxWidth;
     margin: 0 auto;
   }
@@ -195,11 +206,29 @@ $maxWidth: 800px;
   .selectDiv {
     width: 100%;
     height: $configEltHeight;
-    display: flex;
+    display: inline;
+    text-align: left;
+    float: right;
+    clear: both;
+
+    label {
+      //display: inline-block;
+      //width: 66%;
+      //float: left;
+      //padding-right: 20px;
+    }
 
     select, input {
+      display: block;
       height: $configEltHeight;
       margin-top: 0px;
+      //margin-left: 10%;
+      width: auto;
+      float: right;
+    }
+
+    input {
+      max-width: 30%;
     }
   }
 

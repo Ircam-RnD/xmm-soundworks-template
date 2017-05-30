@@ -25,11 +25,11 @@ export default class DesignerExperience extends Experience {
 
     this._sendClientsList();
 
-    this.xmms[client] = new xmm('hhmm', {
-      states: 1,
+    this.xmms[client] = new xmm('gmm', {
+      //states: 1,
       relativeRegularization: 0.01,
       //absoluteRegularization: 0.01,
-      transitionMode: 'leftright'
+      //transitionMode: 'leftright'
     });
     this._getModel(client);
 
@@ -105,6 +105,7 @@ export default class DesignerExperience extends Experience {
        'utf-8'
       );
 
+      console.log(model);
       this.send(client, 'model', model);
       //console.log(JSON.stringify(model));
     });    

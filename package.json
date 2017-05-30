@@ -24,11 +24,14 @@
   },
   "dependencies": {
     "babel-runtime": "^6.6.1",
+    "btoa": "^1.1.2",
     "debug": "^2.1.2",
     "motion-features": "ircam-rnd/motion-features",
+    "node-localstorage": "^1.3.0",
     "soundworks": "collective-soundworks/soundworks#v1.1.1",
     "source-map-support": "^0.4.0",
     "waves-lfo": "github:wavesjs/waves-lfo",
+    "xmlhttprequest": "^1.8.0",
     "xmm-lfo": "github:ircam-rnd/xmm-lfo",
     "xmm-node": "github:ircam-rnd/xmm-node"
   },

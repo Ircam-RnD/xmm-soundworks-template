@@ -1,8 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
-// import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
-// import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
+import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
 import MotionRenderer from '../shared/MotionRenderer';
@@ -179,13 +177,13 @@ export default class PlayerExperience extends soundworks.Experience {
     	descriptors: [ 'accIntensity' ],
       callback: this._setGainFromIntensity
     });
-    this._hhmmDecoder = new HhmmDecoderLfo({
+    this._xmmDecoder = new XmmDecoderLfo({
       likelihoodWindow: 20,
       callback: this._onModelFilter
     });
 
     this._devicemotionIn.connect(this._featurizer);
-    this._devicemotionIn.connect(this._hhmmDecoder);
+    this._devicemotionIn.connect(this._xmmDecoder);
     this._devicemotionIn.start();
 
     //----------------- RECEIVE -----------------//
@@ -197,13 +195,10 @@ export default class PlayerExperience extends soundworks.Experience {
 
   start() {
     super.start(); // don't forget this
-    console.log('starting');
 
-    // console.log('starting');
     if (!this.hasStarted)
       this.init();
 
-    //window.location = window.location.origin + '/conductor';
     this.show();
 
     // initialize rendering
@@ -222,26 +217,15 @@ export default class PlayerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    // let values = [];
-    // for (let i = 0; i < tmpValues.length; i++) {
-    //   values.push(!tmpValues[i] ? 0 : tmpValues[i]);
-    // }
-    // if (!values) values = [0];
-    // const frame = {
-    //   time: new Date().getTime(),
-    //   data: values
-    // };
-    // this._devicemotionIn.processFrame(frame);
     this._devicemotionIn.process(audioContext.currentTime, values);
+
     if (this._sendOscFlag) {
     	this._sendOsc('sensors', values);
     }
   }
 
   _onReceiveModel(model) {
-    // this._hhmmDecoder.model = model;
-
-    this._hhmmDecoder.params.set('model', model);
+    this._xmmDecoder.params.set('model', model);
     console.log('received model');
   }
 
@@ -253,41 +237,39 @@ export default class PlayerExperience extends soundworks.Experience {
   	};
 		this.view.render('#modelsDiv');
 		this._currentModel = Object.keys(models)[0];
-  	// this._hhmmDecoder.model = models[this._currentModel];
-    this._hhmmDecoder.params.set('model', this._models[this._currentModel]);
+    this._xmmDecoder.params.set('model', this._models[this._currentModel]);
     console.log('received models');
   }
 
   _onModelChange(value) {
   	this._currentModel = value;
-  	// this._hhmmDecoder.model = this._models[this._currentModel];
-    this._hhmmDecoder.params.set('model', this._models[this._currentModel]);
+    this._xmmDecoder.params.set('model', this._models[this._currentModel]);
   }
 
   _onModelFilter(res) {
     const likelihoods = res.likelihoods;
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
-    const alphas = res.alphas[likeliest];
+    const alphas = res.alphas;// res.alphas[likeliest];
     const newRes = {
       label: label,
       likeliest: likeliest,
       alphas: alphas,
       likelihoods: likelihoods
     }
-    let sum = 0;
-    for (let i = 0; i < likelihoods.length; i++) {
-      sum += likelihoods[i];
-      if(Number.isNaN(likelihoods[i])) {
-        console.log("NaN : likelihood n° : " + i);
-      }
-    }
-    if (sum != 1) {
-      for (let i = 0; i < likelihoods.length; i++) {
-        console.log('likelihood n° ' + i + ' : ' + likelihoods[i]);
-      }
-      console.log('sum of likelihoods : ' + sum);
-    }
+    // let sum = 0;
+    // for (let i = 0; i < likelihoods.length; i++) {
+    //   sum += likelihoods[i];
+    //   if(Number.isNaN(likelihoods[i])) {
+    //     console.log("NaN : likelihood n° : " + i);
+    //   }
+    // }
+    // if (sum != 1) {
+    //   for (let i = 0; i < likelihoods.length; i++) {
+    //     console.log('likelihood n° ' + i + ' : ' + likelihoods[i]);
+    //   }
+    //   console.log('sum of likelihoods : ' + sum);
+    // }
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {

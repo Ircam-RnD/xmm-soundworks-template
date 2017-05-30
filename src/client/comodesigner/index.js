@@ -1,7 +1,7 @@
 import 'source-map-support/register'; // enable sourcemaps in node
 // import client side soundworks and player experience
 import * as soundworks from 'soundworks/client';
-import SuperDesignerExperience from './SuperDesignerExperience.js';
+import ComoDesignerExperience from './ComoDesignerExperience.js';
 import viewTemplates from '../shared/viewTemplates';
 import viewContent from '../shared/viewContent';
 
@@ -17,7 +17,7 @@ window.addEventListener('load', () => {
   soundworks.client.setViewTemplateDefinitions(viewTemplates);
 
   // create client side (player) experience
-  const experience = new SuperDesignerExperience(assetsDomain);
+  const experience = new ComoDesignerExperience(assetsDomain);
 
   // start the client
   soundworks.client.start();
