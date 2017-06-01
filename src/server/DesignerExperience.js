@@ -25,19 +25,12 @@ export default class SuperDesignerExperience extends Experience {
 
     this._sendClientsList();
 
-<<<<<<< HEAD
-    this.xmms[client] = new xmm('hhmm', {
-      states: 3,
-      relativeRegularization: 0.01,
-      transitionMode: 'leftright'
-    });
-=======
     //this.xmms[client] = new xmm('hhmm');//'hhmm', {
     //   states: 3,
     //   relativeRegularization: 0.01,
     //   transitionMode: 'leftright'
     // });
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
+
     this._getModel(client);
 
     this.receive(client, 'configuration', this._onNewConfig(client));

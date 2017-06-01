@@ -1,10 +1,7 @@
 import 'source-map-support/register'; // enable sourcemaps in node
 import * as soundworks from 'soundworks/server';
 import DesignerExperience from './DesignerExperience';
-<<<<<<< HEAD
-=======
 // import ComoDesignerExperience from './ComoDesignerExperience';
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
 import PlayerExperience from './PlayerExperience';
 import defaultConfig from './config/default';
 
@@ -43,10 +40,7 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
 //   route (url) of the following form: `/${clientType}`)
 
 const designer = new DesignerExperience('designer');
-<<<<<<< HEAD
-=======
 // const cdesigner = new ComoDesignerExperience('comodesigner');
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
 const player = new PlayerExperience('player');
 
 // start application

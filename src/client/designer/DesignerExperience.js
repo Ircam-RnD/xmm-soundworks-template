@@ -1,12 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-<<<<<<< HEAD
-import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
-// import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
-// import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
-=======
 import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
 import { Login } from '../services/Login';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
@@ -15,7 +9,7 @@ import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
 
-class SuperDesignerView extends soundworks.CanvasView {
+class DesignerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
     super(template, content, events, options);
   }
@@ -25,11 +19,6 @@ class SuperDesignerView extends soundworks.CanvasView {
       'click #openConfigBtn': () => {
         const div = this.$el.querySelector('.section-overlay');
         const active = div.classList.contains('active');
-<<<<<<< HEAD
-        if (!active) {
-          div.classList.add('active');
-        } else {
-=======
 
         if (!active) {
           div.classList.add('active');
@@ -58,7 +47,6 @@ class SuperDesignerView extends soundworks.CanvasView {
 
           callback(type, config);
 
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
           div.classList.remove('active');
         }
       }
@@ -133,74 +121,8 @@ const viewTemplate = `
   <div class="foreground">
 
     <div id="nav">
-<<<<<<< HEAD
-      <a href="#" id="openConfigBtn">&#9776;</a>
-    </div>
-
-    <div class="section-overlay">
-      
-      <div class="overlay-content">
-        <p> Global configuration </p>
-        <br />
-        <div class="selectDiv"> Model type :
-          <select id="modelSelect">
-            <option value="gmm">gmm</option>
-            <option value="hhmm">hhmm</option>
-          </select>
-        </div>
-        <div class="selectDiv"> Gaussians :
-          <select id="gaussSelect">
-            <% for (var i = 0; i < 10; i++) { %>
-              <option value="<%= i+1 %>">
-                <%= i+1 %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <div class="selectDiv"> Covariance mode :
-          <select id="covModeSelect">
-            <option value="0">full</option>
-            <option value="1">diagonal</option>
-          </select>
-        </div>        
-        <div class="selectDiv"> Absolute regularization :
-          <input type="text" value="0.01">
-          </input>
-        </div>        
-        <div class="selectDiv"> Relative regularization :
-          <input type="text" value="0.01">
-          </input>
-        </div>        
-
-        <hr>
-        <p> Hhmm parameters </p>
-        <br />
-        <div class="selectDiv"> Hierarchical :
-          <select id="transModeSelect">
-            <option value="1">yes</option>
-            <option value="0">no</option>
-           </select>
-        </div>        
-        <div class="selectDiv"> States :
-          <select id="statesSelect">
-            <% for (var i = 0; i < 20; i++) { %>
-              <option value="<%= i+1 %>">
-                <%= i+1 %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <div class="selectDiv"> Transition mode :
-          <select id="transModeSelect">
-            <option value="0">ergodic</option>
-            <option value="1">left-right</option>
-          </select>
-        </div>        
-      </div>
-=======
       <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
       <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
     </div>
 
     <div class="section-top flex-middle">
@@ -319,7 +241,7 @@ const viewTemplate = `
   </div>
 `;
 
-export default class SuperDesignerExperience extends soundworks.Experience {
+export default class DesignerExperience extends soundworks.Experience {
 	constructor(assetsDomain) {
     super();
 
@@ -355,11 +277,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     	title: 'play !',
       classes: classes
     };
-<<<<<<< HEAD
-    this.viewCtor = SuperDesignerView;
-=======
     this.viewCtor = DesignerView;
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
     this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
     this.view = this.createView();
 
@@ -379,7 +297,6 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     this.view.onSendPhrase(this._onSendPhrase);
     this.view.onClearLabel(this._onClearLabel);
     this.view.onClearModel(this._onClearModel);
-    this.view.onConfig(null);
     this.view.onEnableSounds(this._enableSounds);
 
     //--------------------------------- LFO's --------------------------------//
@@ -397,11 +314,7 @@ export default class SuperDesignerExperience extends soundworks.Experience {
       columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
-<<<<<<< HEAD
-    this._hhmmDecoder = new HhmmDecoderLfo({
-=======
     this._xmmDecoder = new XmmDecoderLfo({
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
       likelihoodWindow: 20,
       callback: this._onModelFilter
     });
@@ -540,19 +453,11 @@ export default class SuperDesignerExperience extends soundworks.Experience {
     const likelihoods = res.likelihoods;
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
-<<<<<<< HEAD
-    const alphas = res.alphas[likeliest];
-    const newRes = {
-      label: label,
-      likeliest: likeliest,
-      alphas: alphas,
-=======
     // const alphas = res.alphas[likeliest];
     const newRes = {
       label: label,
       likeliest: likeliest,
       // alphas: alphas,
->>>>>>> 3bae12acfa77e69976b9899c93b2553242c1593b
       likelihoods: likelihoods
     };
 
