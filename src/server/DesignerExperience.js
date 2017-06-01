@@ -4,7 +4,7 @@ import xmm from 'xmm-node';
 import fs from 'fs';
 
 // server-side 'designer' experience.
-export default class SuperDesignerExperience extends Experience {
+export default class DesignerExperience extends Experience {
   constructor(clientType) {
     super(clientType);
 
@@ -30,7 +30,6 @@ export default class SuperDesignerExperience extends Experience {
     //   relativeRegularization: 0.01,
     //   transitionMode: 'leftright'
     // });
-
     this._getModel(client);
 
     this.receive(client, 'configuration', this._onNewConfig(client));
@@ -130,6 +129,7 @@ export default class SuperDesignerExperience extends Experience {
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
+
       fs.writeFileSync(
        `./public/exports/configs/${client.activities['service:login'].userName}ModelConfig.json`,
        JSON.stringify(this.xmms[client].getConfig(), null, 2),
@@ -141,6 +141,7 @@ export default class SuperDesignerExperience extends Experience {
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
+
       this.send(client, 'model', model);
     });    
   }
