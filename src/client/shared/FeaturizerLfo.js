@@ -29,7 +29,7 @@ const definitions = {
   },
   gyrIndices: {
     type: 'any',
-    default: [6, 7, 8],
+    default: [3, 4, 5],
     constant: true,
   },
   callback: {

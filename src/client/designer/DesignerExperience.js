@@ -1,6 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, HhmmDecoderLfo, GmmDecoderLfo } from 'xmm-lfo';
+import { PhraseRecorderLfo, HhmmDecoderLfo } from 'xmm-lfo';
 // import PhraseRecorderLfo from '../shared/PhraseRecorderLfo';
 // import HhmmDecoderLfo from '../shared/HhmmDecoderLfo';
 import { Login } from '../services/Login';
@@ -11,9 +11,23 @@ import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
 
-class DesignerView extends soundworks.CanvasView {
+class SuperDesignerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
     super(template, content, events, options);
+  }
+
+  onConfig(callback) {
+    this.installEvents({
+      'click #openConfigBtn': () => {
+        const div = this.$el.querySelector('.section-overlay');
+        const active = div.classList.contains('active');
+        if (!active) {
+          div.classList.add('active');
+        } else {
+          div.classList.remove('active');
+        }
+      }
+    });
   }
 
   onRecord(callback) {
@@ -82,6 +96,73 @@ class DesignerView extends soundworks.CanvasView {
 
 const viewTemplate = `
   <div class="foreground">
+
+    <div id="nav">
+      <a href="#" id="openConfigBtn">&#9776;</a>
+    </div>
+
+    <div class="section-overlay">
+      
+      <div class="overlay-content">
+        <p> Global configuration </p>
+        <br />
+        <div class="selectDiv"> Model type :
+          <select id="modelSelect">
+            <option value="gmm">gmm</option>
+            <option value="hhmm">hhmm</option>
+          </select>
+        </div>
+        <div class="selectDiv"> Gaussians :
+          <select id="gaussSelect">
+            <% for (var i = 0; i < 10; i++) { %>
+              <option value="<%= i+1 %>">
+                <%= i+1 %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+        <div class="selectDiv"> Covariance mode :
+          <select id="covModeSelect">
+            <option value="0">full</option>
+            <option value="1">diagonal</option>
+          </select>
+        </div>        
+        <div class="selectDiv"> Absolute regularization :
+          <input type="text" value="0.01">
+          </input>
+        </div>        
+        <div class="selectDiv"> Relative regularization :
+          <input type="text" value="0.01">
+          </input>
+        </div>        
+
+        <hr>
+        <p> Hhmm parameters </p>
+        <br />
+        <div class="selectDiv"> Hierarchical :
+          <select id="transModeSelect">
+            <option value="1">yes</option>
+            <option value="0">no</option>
+           </select>
+        </div>        
+        <div class="selectDiv"> States :
+          <select id="statesSelect">
+            <% for (var i = 0; i < 20; i++) { %>
+              <option value="<%= i+1 %>">
+                <%= i+1 %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+        <div class="selectDiv"> Transition mode :
+          <select id="transModeSelect">
+            <option value="0">ergodic</option>
+            <option value="1">left-right</option>
+          </select>
+        </div>        
+      </div>
+    </div>
+
     <div class="section-top flex-middle">
     	<div>
       	<!-- <p class="big"><%= title %></p> -->
@@ -100,13 +181,14 @@ const viewTemplate = `
           <canvas class="multislider" id="likelihoods"></canvas>
         </div>
         <button id="clearLabelBtn">CLEAR LABEL</button>
-        <button id="clearModelBtn">CLEAR MODEL</button>  
+        <button id="clearModelBtn">CLEAR MODEL</button>
         <div class="toggleDiv">
           <button id="playBtn" class="toggleBtn"></button>
           Enable sounds
         </div>
       </div>
     </div>
+
     <div class="section-center flex-center">
     </div>
     <div class="section-bottom flex-middle">
@@ -114,7 +196,7 @@ const viewTemplate = `
   </div>
 `;
 
-export default class DesignerExperience extends soundworks.Experience {
+export default class SuperDesignerExperience extends soundworks.Experience {
 	constructor(assetsDomain) {
     super();
 
@@ -150,8 +232,8 @@ export default class DesignerExperience extends soundworks.Experience {
     	title: 'play !',
       classes: classes
     };
-    this.viewCtor = DesignerView;
-    this.viewOptions = { preservePixelRatio: true, className: 'designer' };
+    this.viewCtor = SuperDesignerView;
+    this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
     this.view = this.createView();
 
     this._onRecord = this._onRecord.bind(this);
@@ -168,6 +250,7 @@ export default class DesignerExperience extends soundworks.Experience {
     this.view.onSendPhrase(this._onSendPhrase);
     this.view.onClearLabel(this._onClearLabel);
     this.view.onClearModel(this._onClearModel);
+    this.view.onConfig(null);
     this.view.onEnableSounds(this._enableSounds);
 
     //--------------------------------- LFO's --------------------------------//
@@ -185,7 +268,6 @@ export default class DesignerExperience extends soundworks.Experience {
       columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
                      'rotAlpha', 'rotBeta', 'rotGamma']      
     });
-    // this._hhmmDecoder = new HhmmDecoderLfo({
     this._hhmmDecoder = new HhmmDecoderLfo({
       likelihoodWindow: 20,
       callback: this._onModelFilter
@@ -283,11 +365,11 @@ export default class DesignerExperience extends soundworks.Experience {
     const likelihoods = res.likelihoods;
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
-    //const alphas = res.alphas[likeliest];
+    const alphas = res.alphas[likeliest];
     const newRes = {
       label: label,
       likeliest: likeliest,
-      //alphas: alphas,
+      alphas: alphas,
       likelihoods: likelihoods
     }
 

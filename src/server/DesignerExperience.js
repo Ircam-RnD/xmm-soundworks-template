@@ -4,7 +4,7 @@ import xmm from 'xmm-node';
 import fs from 'fs';
 
 // server-side 'designer' experience.
-export default class DesignerExperience extends Experience {
+export default class SuperDesignerExperience extends Experience {
   constructor(clientType) {
     super(clientType);
 
@@ -26,7 +26,7 @@ export default class DesignerExperience extends Experience {
     this._sendClientsList();
 
     this.xmms[client] = new xmm('hhmm', {
-      states: 1,
+      states: 3,
       relativeRegularization: 0.01,
       transitionMode: 'leftright'
     });
@@ -73,13 +73,11 @@ export default class DesignerExperience extends Experience {
       const cmd = args.cmd;
       switch (cmd) {
         case 'label': {
-          console.log('clearlabel');
           this.xmms[client].removePhrasesOfLabel(args.data);
         }
         break;
 
         case 'model': {
-          console.log('clearmodel');
           this.xmms[client].clearTrainingSet();
         }
 
@@ -97,15 +95,12 @@ export default class DesignerExperience extends Experience {
        JSON.stringify(this.xmms[client].getTrainingSet(), null, 2),
        'utf-8'
       );
-
       fs.writeFileSync(
        `./public/exports/models/${client.activities['service:login'].userName}Model.json`,
        JSON.stringify(this.xmms[client].getModel(), null, 2),
        'utf-8'
       );
-
       this.send(client, 'model', model);
-      //console.log(JSON.stringify(model));
     });    
   }
 
