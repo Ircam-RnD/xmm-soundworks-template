@@ -1,3 +1,4 @@
+import 'source-map-support/register'; // enable sourcemaps in node
 // import client side soundworks and player experience
 import * as soundworks from 'soundworks/client';
 import DesignerExperience from './DesignerExperience.js';

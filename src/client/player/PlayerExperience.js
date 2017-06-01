@@ -1,6 +1,6 @@
 import * as soundworks from 'soundworks/client';
 import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
+import { XmmDecoderLfo } from 'xmm-lfo';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
 import MotionRenderer from '../shared/MotionRenderer';

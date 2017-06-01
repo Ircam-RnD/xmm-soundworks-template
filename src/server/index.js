@@ -1,8 +1,7 @@
 import 'source-map-support/register'; // enable sourcemaps in node
 import * as soundworks from 'soundworks/server';
-// import DesignerExperience from './DesignerExperience';
-import SuperDesignerExperience from './SuperDesignerExperience';
-import ComoDesignerExperience from './ComoDesignerExperience';
+import DesignerExperience from './DesignerExperience';
+// import ComoDesignerExperience from './ComoDesignerExperience';
 import PlayerExperience from './PlayerExperience';
 import defaultConfig from './config/default';
 
@@ -39,9 +38,9 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
 // `src/server/playerExperience.js`) and the server side `playerExperience`.
 // - we could also map activities to additional client types (thus defining a
 //   route (url) of the following form: `/${clientType}`)
-// const designer = new DesignerExperience('designer');
-const sdesigner = new SuperDesignerExperience('superdesigner');
-const cdesigner = new ComoDesignerExperience('comodesigner');
+
+const designer = new DesignerExperience('designer');
+// const cdesigner = new ComoDesignerExperience('comodesigner');
 const player = new PlayerExperience('player');
 
 // start application
