@@ -2,6 +2,18 @@
 !/public/exports/models/exampleModel.json
 /public/exports/sets/*
 !/public/exports/sets/exampleTrainingSet.json
+/public/exports/configs/*
+!/public/exports/configs/exampleModelConfig.json
+
+/src/client/comodesigner
+/src/client/services/*
+!/src/client/services/Login.js
+
+/src/server/ComoDesignerExperience.js
+/src/server/services/*
+!/src/server/services/Login.js
+
+scratch/
 
 # Transpiled files and dependencies
 /node_modules
