@@ -29,13 +29,20 @@ When you start with the designer, it first takes you to a login page.
 The login you choose will be used as the prefix of your training set and your model's filenames.
 Once you're logged in, you are taken to the main designer page.
 There, you can notice a dropdown menu that lets you select a label.
-Below, a record button allows you to record streams of data.
-The send button adds the latest recording to the training set, labelled with the currently
+Below, the **REC** button allows you to record streams of data.
+The **SEND** button adds the latest recording to the training set, labelled with the currently
 selected label.
 If something went wrong with recordings of a certain label, it is possible to delete all the data
-related to this label in the training set and the model with the clear model button.
-It is also possible to clear everything with the clear model button.
-
-The play sounds button activates the audio players that sonify the classification results.
+related to this label in the training set and in the model with the **CLEAR LABEL** button.
+It is also possible to clear everything with the **CLEAR MODEL** button.  
+  
+Clicking on the nav icon in the grey bar at the top of the window opens the model configuration settings panel.
+By default the model trained by the server is a simple GMM (Gaussian Mixture Model) with one gaussian.
+You can tweak the model configuration settings to improve the gesture recognition accuracy.
+When closing this panel, the model configuration settings will be saved and the model
+will be immediately trained with the new settings. At this moment you should notice
+a (positive or negative) change in the recognition accuracy.  
+  
+The **Enable sounds** button activates the audio players that sonify the classification results.
 Each label is associated with a sound file.
 One can change the labels and associated sounds in the "src/client/shared/config.js" file.
