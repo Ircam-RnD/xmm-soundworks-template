@@ -9,7 +9,7 @@ Once all the dependencies are installed, type `npm run watch`.
 
 #### about
 
-This project is based on the [soundworks-template](https://github.com/collective-soundworks/soundworks-template)
+This project is based on the [soundworks-template](https://github.com/collective-soundworks/soundworks-template).
 It is a starting point for the creation of soundworks based projects that use gesture recognition.
 The gesture recognition is performed by the [XMM](https://github.com/Ircam-RnD/xmm) library (more specifically
 by the [xmm-node](https://github.com/Ircam-RnD/xmm-node) Node.js addon server-side, and by the
