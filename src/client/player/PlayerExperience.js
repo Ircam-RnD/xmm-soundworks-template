@@ -3,10 +3,54 @@ import * as lfo from 'waves-lfo/client';
 import { XmmDecoderLfo } from 'xmm-lfo';
 import { classes } from  '../shared/config';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
-import MotionRenderer from '../shared/MotionRenderer';
+import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
+
+const viewModel = { models: null };
+
+const viewTemplate = `
+  <div class="foreground">
+    <div class="section-top flex-middle">
+      <div>
+        <div class="selectDiv" id="modelsDiv"> Model :
+          <select id="modelSelect">
+            <% for (var prop in models) { %>
+              <option value="<%= prop %>">
+                <%= prop %>
+              </option>
+            <% } %>
+          </select>
+        </div>
+        <div class="canvasDiv" id="likelihoodsDiv">
+          <canvas class="multislider" id="likelihoods"></canvas>
+        </div>
+        <!--
+        Sound control :
+        <div class="audioDiv">
+          <button id="playBtn" class="toggleBtn"></button>
+          <div id="audioSliderDiv">
+            <input type="range" id="volumeSlider"></input>
+          </div>
+        </div>
+        -->
+        <div class="toggleDiv">
+          <button id="playBtn" class="toggleBtn"></button>
+          Enable sounds
+        </div>
+        <div class="toggleDiv">
+          <button id="sendOsc" class="toggleBtn"></button>
+          Send OSC
+        </div>
+      </div>
+    </div>
+    <div class="section-center flex-center">
+    </div>
+    <div class="section-bottom flex-middle">
+    </div>
+  </div>
+`;
 
 class PlayerView extends soundworks.CanvasView {
   constructor(template, content, events, options) {
@@ -20,6 +64,11 @@ class PlayerView extends soundworks.CanvasView {
         callback(inputs.options[inputs.selectedIndex].value);
       }
     });
+  }
+
+  setModelItem(item) {
+    const el = this.$el.querySelector('#modelSelect');
+    el.value = item;
   }
 
   onToggleSendOsc(callback) {
@@ -62,64 +111,17 @@ class PlayerView extends soundworks.CanvasView {
   }
 }
 
-const viewTemplate = `
-  <div class="foreground">
-    <div class="section-top flex-middle">
-    	<div>
-      	<!-- <p class="big"><%= title %></p> -->
-        <div class="selectDiv" id="modelsDiv"> Model :
-          <select id="modelSelect">
-            <% for (var prop in models) { %>
-              <option value="<%= prop %>">
-                <%= prop %>
-              </option>
-            <% } %>
-          </select>
-        </div>
-        <div class="canvasDiv" id="likelihoodsDiv">
-          <canvas class="multislider" id="likelihoods"></canvas>
-        </div>
-        <!--
-        Sound control :
-        <div class="audioDiv">
-          <button id="playBtn" class="toggleBtn"></button>
-          <div id="audioSliderDiv">
-            <input type="range" id="volumeSlider"></input>
-          </div>
-        </div>
-        -->
-        <div class="toggleDiv">
-          <button id="playBtn" class="toggleBtn"></button>
-          Enable sounds
-        </div>
-        <div class="toggleDiv">
-          <button id="sendOsc" class="toggleBtn"></button>
-          Send OSC
-        </div>
-      </div>
-    </div>
-    <div class="section-center flex-center">
-    </div>
-    <div class="section-bottom flex-middle">
-    </div>
-  </div>
-`;
-
-export default class PlayerExperience extends soundworks.Experience {
-	constructor(assetsDomain) {
+// this experience plays a sound when it starts, and plays another sound when
+// other clients join the experience
+class PlayerExperience extends soundworks.Experience {
+  constructor(assetsDomain) {
     super();
 
-    console.log('creating experience');
-
-    const audioFiles = [];
-    for (let label in classes) {
-      audioFiles.push(classes[label]);
-    }
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
-    this.loader = this.require('loader', {
+    this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: audioFiles
+      files: classes,
     });
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
@@ -129,98 +131,79 @@ export default class PlayerExperience extends soundworks.Experience {
     this.likeliest = undefined;
     this._models = null;
     this._sendOscFlag = false;
-	}
-
-  //=============================================//
-
-  init() {
-    console.log('start initialization');
-
-    this.audioEngine = new AudioEngine(classes, this.loader);
-
-    // initialize the view
-    this.viewTemplate = viewTemplate;
-    this.viewContent = {
-    	title: 'play !',
-      models: null
-    };
-    this.viewCtor = PlayerView;
-    this.viewOptions = { preservePixelRatio: true, className: 'player' };
-    this.view = this.createView();
-
-    this._onReceiveModel = this._onReceiveModel.bind(this);
-    this._onReceiveModels = this._onReceiveModels.bind(this);
-    this._onModelChange = this._onModelChange.bind(this);
-    this._onModelFilter = this._onModelFilter.bind(this);   
-    this._motionCallback = this._motionCallback.bind(this);
-
-    this._setGainFromIntensity = this._setGainFromIntensity.bind(this);
-    this._enableSounds = this._enableSounds.bind(this);
-    this._setMasterVolume = this._setMasterVolume.bind(this);
-
-    this.view.onModelChange(this._onModelChange);
-    this.view.onToggleSendOsc((val) => {
-      this._sendOscFlag = val;
-    });
-
-    this.view.onEnableSounds(this._enableSounds);
-    this.view.onSetMasterVolume(this._setMasterVolume);
-
-    //--------------------------------- LFO's --------------------------------//
-    this._devicemotionIn = new lfo.source.EventIn({
-      frameType: 'vector',
-      frameSize: 6,
-      frameRate: 1,//this.motionInput.period doesn't seem available anymore
-      description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
-    });
-    this._featurizer = new FeaturizerLfo({
-    	descriptors: [ 'accIntensity' ],
-      callback: this._setGainFromIntensity
-    });
-    this._xmmDecoder = new XmmDecoderLfo({
-      likelihoodWindow: 20,
-      callback: this._onModelFilter
-    });
-
-    this._devicemotionIn.connect(this._featurizer);
-    this._devicemotionIn.connect(this._xmmDecoder);
-    this._devicemotionIn.start();
-
-    //----------------- RECEIVE -----------------//
-    this.receive('model', this._onReceiveModel);
-    this.receive('models', this._onReceiveModels);
   }
-
-  //=============================================//
 
   start() {
     super.start(); // don't forget this
 
-    if (!this.hasStarted)
-      this.init();
+    this.view = new PlayerView(viewTemplate, viewModel, {}, {
+      preservePixelRatio: true,
+      className: 'player'
+    });
 
-    this.show();
+    // as show can be async, we make sure that the view is actually rendered
+    this.show().then(() => {
+      this._onReceiveModels = this._onReceiveModels.bind(this);
+      this._onModelChange = this._onModelChange.bind(this);
+      this._onModelFilter = this._onModelFilter.bind(this);   
+      this._motionCallback = this._motionCallback.bind(this);
 
-    // initialize rendering
-    this.renderer = new MotionRenderer(100);
-    this.view.addRenderer(this.renderer);
-    // this function is called before each update (`Renderer.render`) of the canvas
-    this.view.setPreRender((ctx, dt) => {});
+      this._setGainFromIntensity = this._setGainFromIntensity.bind(this);
+      this._enableSounds = this._enableSounds.bind(this);
+      this._setMasterVolume = this._setMasterVolume.bind(this);
 
-    this.audioEngine.start();
-    if (this.motionInput.isAvailable('devicemotion')) {
-      this.motionInput.addListener('devicemotion', this._motionCallback);
-    }
+      this.view.onModelChange(this._onModelChange);
+      this.view.onEnableSounds(this._enableSounds);
+      this.view.onToggleSendOsc((val) => {
+        this._sendOscFlag = val;
+      });
+
+      //------------------------------- RENDERER -----------------------------//
+      this.renderer = new LikelihoodsRenderer(100);
+      this.view.addRenderer(this.renderer);
+
+      //--------------------------------- LFO's ------------------------------//
+      this._devicemotionIn = new lfo.source.EventIn({
+        frameType: 'vector',
+        frameSize: 6,
+        frameRate: 1, // this.motionInput.period doesn't seem available anymore
+        description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
+      });
+      this._featurizer = new FeaturizerLfo({
+        descriptors: [ 'accIntensity' ],
+        callback: this._setGainFromIntensity
+      });
+      this._xmmDecoder = new XmmDecoderLfo({
+        likelihoodWindow: 20,
+        callback: this._onModelFilter
+      });
+
+      this._devicemotionIn.connect(this._featurizer);
+      this._devicemotionIn.connect(this._xmmDecoder);
+      this._devicemotionIn.start();
+
+      //------------------ AUDIO -----------------//
+      this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+      this.audioEngine.start();
+
+      //--------------- MOTION INPUT -------------//
+      if (this.motionInput.isAvailable('devicemotion')) {
+        this.motionInput.addListener('devicemotion', this._motionCallback);
+      }
+
+      //----------------- RECEIVE -----------------//
+      this.receive('models', this._onReceiveModels);
+    });
   }
 
-  //================ callbacks : ================//
+  //--------------------------------- CALLBACKS ------------------------------//
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
     this._devicemotionIn.process(audioContext.currentTime, values);
 
     if (this._sendOscFlag) {
-    	this._sendOsc('sensors', values);
+      this._sendOsc('sensors', values);
     }
   }
 
@@ -230,19 +213,26 @@ export default class PlayerExperience extends soundworks.Experience {
   }
 
   _onReceiveModels(models) {
-  	this._models = models;
-  	this.view.content = {
-    	title: 'play !',
-      models: this._models  		
-  	};
-		this.view.render('#modelsDiv');
-		this._currentModel = Object.keys(models)[0];
+    this._models = models;
+
+    this.view.model.models = this._models;
+    this.view.render('#modelsDiv');
+
+    const prevModels = Object.keys(models);
+    const prevModelIndex = prevModels.indexOf(this._currentModel);
+
+    if (this._currentModel &&  prevModelIndex > -1) {
+      this._currentModel = prevModels[prevModelIndex];
+      this.view.setModelItem(this._currentModel);
+    } else {
+      this._currentModel = prevModels[0];
+    }
+
     this._xmmDecoder.params.set('model', this._models[this._currentModel]);
-    console.log('received models');
   }
 
   _onModelChange(value) {
-  	this._currentModel = value;
+    this._currentModel = value;
     this._xmmDecoder.params.set('model', this._models[this._currentModel]);
   }
 
@@ -251,44 +241,33 @@ export default class PlayerExperience extends soundworks.Experience {
     const likeliest = res.likeliestIndex;
     const label = res.likeliest;
     const alphas = res.alphas;// res.alphas[likeliest];
+
     const newRes = {
       label: label,
       likeliest: likeliest,
       alphas: alphas,
       likelihoods: likelihoods
     }
-    // let sum = 0;
-    // for (let i = 0; i < likelihoods.length; i++) {
-    //   sum += likelihoods[i];
-    //   if(Number.isNaN(likelihoods[i])) {
-    //     console.log("NaN : likelihood n° : " + i);
-    //   }
-    // }
-    // if (sum != 1) {
-    //   for (let i = 0; i < likelihoods.length; i++) {
-    //     console.log('likelihood n° ' + i + ' : ' + likelihoods[i]);
-    //   }
-    //   console.log('sum of likelihoods : ' + sum);
-    // }
+
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {
-    	this.likeliest = label;
+      this.likeliest = label;
       console.log('changed gesture to : ' + label);
       const i = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(i);
     }
 
-  	if (this._sendOscFlag) {
-  		this._sendOsc('likelihoods', likelihoods);
-  		this._sendOsc('likeliest', likeliest);
-  	}
+    if (this._sendOscFlag) {
+      this._sendOsc('likelihoods', likelihoods);
+      this._sendOsc('likeliest', likeliest);
+    }
   }
 
   _setGainFromIntensity(values) {
-  	if (this._sendOscFlag) {
-  		this._sendOsc('intensity', [values[0]]);
-  	}
+    if (this._sendOscFlag) {
+      this._sendOsc('intensity', [values[0]]);
+    }
     this.audioEngine.setGainFromIntensity(values[0]);
   }
 
@@ -301,9 +280,11 @@ export default class PlayerExperience extends soundworks.Experience {
   }
 
   _sendOsc(suffix, values) {
-  	this.send('sendosc', {
-  		url: `/${this._currentModel}/${suffix}`,
-  		values: values
-  	});
+    this.send('sendosc', {
+      url: `/${this._currentModel}/${suffix}`,
+      values: values
+    });
   }
 }
+
+export default PlayerExperience;

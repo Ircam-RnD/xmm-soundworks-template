@@ -1,128 +1,25 @@
 import * as soundworks from 'soundworks/client';
-import * as lfo from 'waves-lfo/client';
-import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 import { Login } from '../services/Login';
-import { classes } from  '../shared/config';
+import * as lfo from 'waves-lfo/common';
+import { PhraseRecorderLfo, XmmDecoderLfo } from 'xmm-lfo';
 import FeaturizerLfo from '../shared/FeaturizerLfo';
-import MotionRenderer from '../shared/MotionRenderer';
+import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
+import { classes } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
 
 const audioContext = soundworks.audioContext;
 
-class DesignerView extends soundworks.CanvasView {
-  constructor(template, content, events, options) {
-    super(template, content, events, options);
-  }
-
-  onConfig(callback) {
-    this.installEvents({
-      'click #openConfigBtn': () => {
-        const div = this.$el.querySelector('.section-overlay');
-        const active = div.classList.contains('active');
-
-        if (!active) {
-          div.classList.add('active');
-        } else {
-          elt = this.$el.querySelector('#modelSelect');
-          const type = elt.options[elt.selectedIndex].value;
-
-          const config = {};
-          let elt;
-          elt = this.$el.querySelector('#gaussSelect');
-          config['gaussians'] = Number(elt.options[elt.selectedIndex].value);
-          elt = this.$el.querySelector('#covModeSelect');
-          config['covarianceMode'] = elt.options[elt.selectedIndex].value;
-          elt = this.$el.querySelector('#absReg');
-          config['absoluteRegularization'] = Number(elt.value);
-          elt = this.$el.querySelector('#relReg');
-          config['relativeRegularization'] = Number(elt.value);
-          // elt = this.$el.querySelector('#hierarchicalSelect');
-          // config['hierarchical'] = (elt.options[elt.selectedIndex].value === 'yes');
-          elt = this.$el.querySelector('#transModeSelect');
-          config['transitionMode'] = elt.options[elt.selectedIndex].value;
-          elt = this.$el.querySelector('#statesSelect');
-          config['states'] = Number(elt.options[elt.selectedIndex].value);
-          // elt = this.$el.querySelector('#regressEstimSelect');
-          // config['regressionEstimator'] = elt.options[elt.selectedIndex].value;
-
-          callback(type, config);
-
-          div.classList.remove('active');
-        }
-      }
-    });
-  }
-
-  onRecord(callback) {
-    this.installEvents({
-      'click #recBtn': () => {
-        const rec = this.$el.querySelector('#recBtn');
-        if (!rec.classList.contains('active')) {
-          //recording = true;
-          rec.innerHTML = 'STOP';
-          rec.classList.add('active');
-          // rec.style.background = '#ff0000';
-          // phraseMaker.reset();
-          callback('record');
-        } else {
-          //recording = false;
-          rec.innerHTML = 'REC';
-          rec.classList.remove('active');
-          // rec.style.background = recOffColor;
-          callback('stop')
-        }
-      }
-    });
-  }
-
-  onSendPhrase(callback) {
-    this.installEvents({
-      'click #sendBtn': () => {
-        const labels = this.$el.querySelector('#labelSelect');
-        callback(labels.options[labels.selectedIndex].text);
-      }
-    });
-  }
-
-  onClearLabel(callback) {
-    this.installEvents({
-      'click #clearLabelBtn': () => {
-        const labels = this.$el.querySelector('#labelSelect');
-        callback(labels.options[labels.selectedIndex].text);
-      }
-    });
-  }
-
-  onClearModel(callback) {
-    this.installEvents({
-      'click #clearModelBtn': () => {
-        callback();
-      }
-    });
-  }
-
-  onEnableSounds(callback) {
-    this.installEvents({
-      'click #playBtn': () => {
-        const btn = this.$el.querySelector('#playBtn');
-        const active = btn.classList.contains('active');
-        if (!active) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-        callback(!active);        
-      }
-    });
-  }
-}
+const viewModel = {
+  classes: classes,
+  assetsDomain: '',
+};
 
 const viewTemplate = `
   <div class="foreground">
 
     <div id="nav">
       <!-- <a href="#" id="openConfigBtn">&#9776;</a> -->
-      <a href="#" id="openConfigBtn"> <img src="/pics/navicon.png"> </a>
+      <a href="#" id="openConfigBtn"> <img src="<%= assetsDomain %>pics/navicon.png"> </a>
     </div>
 
     <div class="section-top flex-middle">
@@ -208,8 +105,7 @@ const viewTemplate = `
         </div>
       </div>
 
-    	<div class="section-underlay">
-      	<!-- <p class="big"><%= title %></p> -->
+      <div class="section-underlay">
         <div class="selectDiv"> Label :
           <select id="labelSelect">
             <% for (var prop in classes) { %>
@@ -230,6 +126,12 @@ const viewTemplate = `
           <button id="playBtn" class="toggleBtn"></button>
           Enable sounds
         </div>
+        <!--
+        <div class="toggleDiv">
+          <button id="intensityBtn" class="toggleBtn"></button>
+          Disable intensity control
+        </div>
+        -->
       </div>
     </div>
 
@@ -241,20 +143,121 @@ const viewTemplate = `
   </div>
 `;
 
-export default class DesignerExperience extends soundworks.Experience {
-	constructor(assetsDomain) {
+class DesignerView extends soundworks.CanvasView {
+  constructor(template, content, events, options) {
+    super(template, content, events, options);
+  }
+
+  onConfig(callback) {
+    this.installEvents({
+      'click #openConfigBtn': () => {
+        const div = this.$el.querySelector('.section-overlay');
+        const active = div.classList.contains('active');
+
+        if (!active) {
+          div.classList.add('active');
+        } else {
+          elt = this.$el.querySelector('#modelSelect');
+          const type = elt.options[elt.selectedIndex].value;
+
+          const config = {};
+          let elt;
+          elt = this.$el.querySelector('#gaussSelect');
+          config['gaussians'] = Number(elt.options[elt.selectedIndex].value);
+          elt = this.$el.querySelector('#covModeSelect');
+          config['covarianceMode'] = elt.options[elt.selectedIndex].value;
+          elt = this.$el.querySelector('#absReg');
+          config['absoluteRegularization'] = Number(elt.value);
+          elt = this.$el.querySelector('#relReg');
+          config['relativeRegularization'] = Number(elt.value);
+          // elt = this.$el.querySelector('#hierarchicalSelect');
+          // config['hierarchical'] = (elt.options[elt.selectedIndex].value === 'yes');
+          elt = this.$el.querySelector('#transModeSelect');
+          config['transitionMode'] = elt.options[elt.selectedIndex].value;
+          elt = this.$el.querySelector('#statesSelect');
+          config['states'] = Number(elt.options[elt.selectedIndex].value);
+          // elt = this.$el.querySelector('#regressEstimSelect');
+          // config['regressionEstimator'] = elt.options[elt.selectedIndex].value;
+
+          callback(type, config);
+
+          div.classList.remove('active');
+        }
+      }
+    });
+  }
+
+  onRecord(callback) {
+    this.installEvents({
+      'click #recBtn': () => {
+        const rec = this.$el.querySelector('#recBtn');
+        if (!rec.classList.contains('active')) {
+          rec.innerHTML = 'STOP';
+          rec.classList.add('active');
+          callback('record');
+        } else {
+          rec.innerHTML = 'REC';
+          rec.classList.remove('active');
+          callback('stop')
+        }
+      }
+    });
+  }
+
+  onSendPhrase(callback) {
+    this.installEvents({
+      'click #sendBtn': () => {
+        const labels = this.$el.querySelector('#labelSelect');
+        callback(labels.options[labels.selectedIndex].text);
+      }
+    });
+  }
+
+  onClearLabel(callback) {
+    this.installEvents({
+      'click #clearLabelBtn': () => {
+        const labels = this.$el.querySelector('#labelSelect');
+        callback(labels.options[labels.selectedIndex].text);
+      }
+    });
+  }
+
+  onClearModel(callback) {
+    this.installEvents({
+      'click #clearModelBtn': () => {
+        callback();
+      }
+    });
+  }
+
+  onEnableSounds(callback) {
+    this.installEvents({
+      'click #playBtn': () => {
+        const btn = this.$el.querySelector('#playBtn');
+        const active = btn.classList.contains('active');
+        if (!active) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+        callback(!active);        
+      }
+    });
+  }
+};
+
+
+class DesignerExperience extends soundworks.Experience {
+  constructor(assetsDomain) {
     super();
 
-    const audioFiles = [];
-    for (let label in classes) {
-      audioFiles.push(classes[label]);
-    }
     this.platform = this.require('platform', { features: ['web-audio'] });
     this.checkin = this.require('checkin', { showDialog: false });
+    this.sharedConfig = this.require('shared-config', { items: ['assetsDomain'] });
     this.login = this.require('login');
-    this.loader = this.require('loader', {
+    this.audioBufferManager = this.require('audio-buffer-manager', {
       assetsDomain: assetsDomain,
-      files: audioFiles
+      files: classes,
     });
     this.motionInput = this.require('motion-input', {
       descriptors: ['devicemotion']
@@ -262,98 +265,81 @@ export default class DesignerExperience extends soundworks.Experience {
 
     this.labels = Object.keys(classes);
     this.likeliest = undefined;
-	}
-
-  //=============================================//
-
-  init() {
-    console.log('start initialization');
-
-    this.audioEngine = new AudioEngine(classes, this.loader);
-
-    // initialize the view
-    this.viewTemplate = viewTemplate;
-    this.viewContent = {
-    	title: 'play !',
-      classes: classes
-    };
-    this.viewCtor = DesignerView;
-    this.viewOptions = { preservePixelRatio: true, className: 'superdesigner' };
-    this.view = this.createView();
-
-    this._onConfig = this._onConfig.bind(this);
-    this._onRecord = this._onRecord.bind(this);
-    this._onSendPhrase = this._onSendPhrase.bind(this);
-    this._onClearLabel = this._onClearLabel.bind(this);
-    this._onClearModel = this._onClearModel.bind(this);
-    this._onReceiveModel = this._onReceiveModel.bind(this);
-    this._onModelFilter = this._onModelFilter.bind(this);   
-    this._motionCallback = this._motionCallback.bind(this);
-    this._intensityCallback = this._intensityCallback.bind(this);
-    this._enableSounds = this._enableSounds.bind(this);
-
-    this.view.onConfig(this._onConfig);
-    this.view.onRecord(this._onRecord);
-    this.view.onSendPhrase(this._onSendPhrase);
-    this.view.onClearLabel(this._onClearLabel);
-    this.view.onClearModel(this._onClearModel);
-    this.view.onEnableSounds(this._enableSounds);
-
-    //--------------------------------- LFO's --------------------------------//
-    this._devicemotionIn = new lfo.source.EventIn({
-      frameType: 'vector',
-      frameSize: 6,
-      frameRate: 1,//this.motionInput.period doesn't seem available anymore
-      description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
-    });
-    this._featurizer = new FeaturizerLfo({
-    	descriptors: [ 'accIntensity' ],
-      callback: this._intensityCallback
-    });
-    this._phraseRecorder = new PhraseRecorderLfo({
-      columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
-                     'rotAlpha', 'rotBeta', 'rotGamma']      
-    });
-    this._xmmDecoder = new XmmDecoderLfo({
-      likelihoodWindow: 20,
-      callback: this._onModelFilter
-    });
-
-    this._devicemotionIn.connect(this._featurizer);
-    this._devicemotionIn.connect(this._phraseRecorder);
-    this._devicemotionIn.connect(this._xmmDecoder);
-    this._devicemotionIn.start();
-
-    //----------------- RECEIVE -----------------//
-    this.receive('model', this._onReceiveModel);
   }
-
-  //=============================================//
 
   start() {
     super.start(); // don't forget this
 
-    if (!this.hasStarted)
-      this.init();
+    this.view = new DesignerView(viewTemplate, viewModel, {}, {
+      preservePixelRatio: true,
+      className: 'designer'
+    });
 
-    this.show();
+    this.view.model.assetsDomain = this.sharedConfig.get('assetsDomain');
 
-    // initialize rendering
-    this.renderer = new MotionRenderer(100);
-    this.view.addRenderer(this.renderer);
-    // this function is called before each update (`Renderer.render`) of the canvas
-    this.view.setPreRender((ctx, dt) => {});
+    this.show().then(() => {
 
-    this.audioEngine.start();
+      this._onConfig = this._onConfig.bind(this);
+      this._onRecord = this._onRecord.bind(this);
+      this._onSendPhrase = this._onSendPhrase.bind(this);
+      this._onClearLabel = this._onClearLabel.bind(this);
+      this._onClearModel = this._onClearModel.bind(this);
+      this._onReceiveModel = this._onReceiveModel.bind(this);
+      this._onModelFilter = this._onModelFilter.bind(this);   
+      this._motionCallback = this._motionCallback.bind(this);
+      this._intensityCallback = this._intensityCallback.bind(this);
+      this._enableSounds = this._enableSounds.bind(this);
+
+      this.view.onConfig(this._onConfig);
+      this.view.onRecord(this._onRecord);
+      this.view.onSendPhrase(this._onSendPhrase);
+      this.view.onClearLabel(this._onClearLabel);
+      this.view.onClearModel(this._onClearModel);
+      this.view.onEnableSounds(this._enableSounds);
+
+      //--------------------------------- LFO's --------------------------------//
+      this._devicemotionIn = new lfo.source.EventIn({
+        frameType: 'vector',
+        frameSize: 6,
+        frameRate: 1,//this.motionInput.period doesn't seem available anymore
+        description: ['accX', 'accY', 'accZ', 'gyrAlpha', 'gyrBeta', 'gyrGamma']
+      });
+      this._featurizer = new FeaturizerLfo({
+        descriptors: [ 'accIntensity' ],
+        callback: this._intensityCallback
+      });
+      this._phraseRecorder = new PhraseRecorderLfo({
+        columnNames: ['accelGravX', 'accelGravY', 'accelGravZ',
+                       'rotAlpha', 'rotBeta', 'rotGamma']      
+      });
+      this._xmmDecoder = new XmmDecoderLfo({
+        likelihoodWindow: 20,
+        callback: this._onModelFilter
+      });
+
+      this._devicemotionIn.connect(this._featurizer);
+      this._devicemotionIn.connect(this._phraseRecorder);
+      this._devicemotionIn.connect(this._xmmDecoder);
+      this._devicemotionIn.start();
+
+      // initialize rendering
+      this.renderer = new LikelihoodsRenderer(100);
+      this.view.addRenderer(this.renderer);
+      // this.view.setPreRender((ctx, dt) => {});
+
+      this.audioEngine = new AudioEngine(this.audioBufferManager.data);
+      this.audioEngine.start();
 
     if (this.motionInput.isAvailable('devicemotion')) {
       this.motionInput.addListener('devicemotion', this._motionCallback);
     }
+      //----------------- RECEIVE -----------------//
+      this.receive('model', this._onReceiveModel);
+    });
   }
 
   _onConfig(type, config) {
     this.send('configuration', { type: type, config: config });
-    // console.log(config);
   }
 
   _onRecord(cmd) {
@@ -397,29 +383,15 @@ export default class DesignerExperience extends soundworks.Experience {
 
   _motionCallback(eventValues) {
     const values = eventValues.slice(0,3).concat(eventValues.slice(-3));
-    // values.forEach(function(elt) { elt *= 1000; });
     this._devicemotionIn.process(audioContext.currentTime, values);
   }
 
   _onReceiveModel(model) {
-    console.log(model);
     const config = model ? model.configuration.default_parameters : {};
 
     config.modelType = config.states ? 'hhmm' : 'gmm';
     this._updateConfigFromModel(config);
     this._xmmDecoder.params.set('model', model);
-
-    // no use for this : model should be null
-    // only if training was cancelled server-side
-    
-    // if (!model) {
-    //   this.renderer.setModelResults({
-    //     label: 'unknown',
-    //     likeliest: 0,
-    //     likelihoods: [ 0 ]
-    //   });
-    // }
-    //console.log('received model : ' + JSON.stringify(model, null, 2));
   }
 
   _updateConfigFromModel(config) {
@@ -438,33 +410,28 @@ export default class DesignerExperience extends soundworks.Experience {
     elt = v.querySelector('#relReg');
     elt.value = config.relative_regularization;
 
-    // elt = v.querySelector('#hierarchicalSelect');
-    // elt.selectedIndex = config.hierarchical ? 0 : 1;
-    elt = v.querySelector('#transModeSelect');
-    elt.selectedIndex = config.transition_mode ? config.transition_mode : 0;
     elt = v.querySelector('#statesSelect');
     elt.selectedIndex = config.states ? config.states - 1 : 0;
-    // elt = v.querySelector('#regressEstimSelect');
-    // elt.selectedIndex = config.regressionEstimator;
-    //this.view.render();
+    elt = v.querySelector('#transModeSelect');
+    elt.selectedIndex = config.transition_mode ? config.transition_mode : 0;
   }
 
   _onModelFilter(res) {
-    const likelihoods = res.likelihoods;
-    const likeliest = res.likeliestIndex;
-    const label = res.likeliest;
-    // const alphas = res.alphas[likeliest];
+    const likelihoods = res ? res.likelihoods : [];
+    const likeliest = res ? res.likeliestIndex : -1;
+    const label = res ? res.likeliest : 'unknown';
+    const alphas = res ? res.alphas : [[]];// res.alphas[likeliest];
+
     const newRes = {
       label: label,
       likeliest: likeliest,
-      // alphas: alphas,
       likelihoods: likelihoods
     };
 
     this.renderer.setModelResults(newRes);
 
     if (this.likeliest !== label) {
-    	this.likeliest = label;
+      this.likeliest = label;
       console.log('changed gesture to : ' + label);
       const i = this.labels.indexOf(label);
       this.audioEngine.fadeToNewSound(i);
@@ -478,4 +445,6 @@ export default class DesignerExperience extends soundworks.Experience {
   _enableSounds(onOff) {
     this.audioEngine.enableSounds(onOff);
   }
-}
+};
+
+export default DesignerExperience;

@@ -6,6 +6,9 @@ import { MotionFeatures } from 'motion-features';
 // 3,4,5 -> acceleration
 // 6,7,8 -> rotationRate
 
+// but, as they are preprocessed by parent class,
+// indices for acc + gyro are 0, 1, 2, 3, 4, 5 (see below)
+
 const definitions = {
   descriptors: {
     type: 'any',
@@ -18,7 +21,7 @@ const definitions = {
       'kick',
       'shake',
       'spin',
-      'still'
+      'still',
     ],
     constant: true,
   },
@@ -47,7 +50,9 @@ export default class Featurizer extends BaseLfo {
     this._features = new MotionFeatures({
       descriptors: this.params.get('descriptors'),
       spinThresh: 0.5, // original : 200
-      stillThresh: 2 // original : 5000
+      stillThresh: 2, // original : 5000
+      accIntensityParam1: 0.8,
+      accIntensityParam2: 0.1,
     });
     // this._callback = this.params.get('callback');
 
@@ -60,7 +65,9 @@ export default class Featurizer extends BaseLfo {
       kick: [ 'intensity', 'kicking' ],
       shake: [ 'shaking' ],
       spin: [ 'spinning', 'duration', 'gyrNorm' ],
-      still: [ 'still', 'slide' ]
+      still: [ 'still', 'slide' ],
+      gyrZcr: [ 'amplitude', 'frequency', 'periodicity' ],
+      accZcr: [ 'amplitude', 'frequency', 'periodicity' ],
     };
   }
 
@@ -106,40 +113,6 @@ export default class Featurizer extends BaseLfo {
       inData[gyrIndices[1]],
       inData[gyrIndices[2]]
     );
-
-    // this._features.update((err, values) => {
-    //   if (err !== null) {
-    //     // throw new Error(`Error computing motion features : ${err}`);
-    //     return;
-    //   }
-
-    //   let i = 0;
-    //   // let prnt = '';
-    //   for (let d of descriptors) {
-    //     const subDesc = this._descriptorsInfo[d]; // the array of the current descriptor's dimensions names
-    //     const subValues = values[d];
-
-    //     for (let subd of subDesc) {
-    //       if (subd === 'duration' || subd === 'slide') {
-    //         subValues[subd] = 0;
-    //       }
-    //       outData[i] = subValues[subd]; // here we fill the output frame (data)
-    //       i++;
-    //       // prnt += subd + ':' + subValues[subd] + ', ';
-    //     }
-    //   }
-    //   //console.log(prnt);
-
-    //   if (callback) {
-    //     const desc = new Array(this.streamParams.frameSize);
-    //     for (let j = 0; j < desc.length; j++) {
-    //       desc[j] = outData[j];
-    //     }
-    //     callback(desc);
-    //   }
-
-    //   this.propagateFrame();
-    // });
 
     const values = this._features.update();
 
