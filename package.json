@@ -30,10 +30,10 @@
     "node-localstorage": "^1.3.0",
     "soundworks": "collective-soundworks/soundworks#v1.1.1",
     "source-map-support": "^0.4.0",
-    "waves-lfo": "github:wavesjs/waves-lfo",
+    "waves-lfo": "wavesjs/waves-lfo#v1.0.1",
     "xmlhttprequest": "^1.8.0",
-    "xmm-lfo": "github:ircam-rnd/xmm-lfo",
-    "xmm-node": "github:ircam-rnd/xmm-node"
+    "xmm-lfo": "ircam-rnd/xmm-lfo#v1.0.1",
+    "xmm-node": "ircam-rnd/xmm-node#v0.3.1"
   },
   "devDependencies": {
     "babel-core": "^6.6.5",
@@ -45,7 +45,7 @@
     "fs-extra": "^0.26.2",
     "node-sass": "^3.4.1",
     "ora": "^0.2.0",
-    "uglifyjs": "^2.4.10",
+    "uglify-js": "^2.4.10",
     "watch": "^0.17.1",
     "watchify": "^3.7.0"
   }
