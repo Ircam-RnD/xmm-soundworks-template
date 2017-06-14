@@ -2,9 +2,10 @@
 
 #### installation
 
+If you don't already have Node.js installed, install the LTS version (>= 6.9.1).  
 Download or clone this repository.  
 From the terminal, `cd` into this folder, then type `npm install`.  
-Once all the dependencies installed, type `npm run watch`.  
+Once all the dependencies are installed, type `npm run watch`.  
 
 #### about
 
@@ -19,8 +20,8 @@ by the [xmm-node](https://github.com/Ircam-RnD/xmm-node) Node.js addon server-si
 It features a special page, designer, which provides a simple interface allowing to record gestures
 (streams of devicemotion data received from the smartphone's sensors) and train a model in real-time.
 A visualization and a sonification of the results help the (human) gesture designer during the training process.
-On each operation, the training set used to train the model, and the model itself are updated in real-time, serialized
-and saved locally as json files for later reuse.
+On each operation, the training set used to train the model, the model configuration, and the model itself
+are updated in real-time, serialized and saved locally as json files for later reuse.
 
 ###### template
 
