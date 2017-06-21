@@ -3,6 +3,7 @@ import path from 'path';
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
 import DesignerExperience from './DesignerExperience';
+import SuperDesignerExperience from './SuperDesignerExperience';
 
 const configName = process.env.ENV || 'default';
 const configPath = path.join(__dirname, 'config', configName);
@@ -43,6 +44,7 @@ soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) =>
 //   route (url) of the following form: `/${clientType}`)
 const player = new PlayerExperience('player');
 const designer = new DesignerExperience('designer');
+const sdesigner = new SuperDesignerExperience('superdesigner');
 
 // start application
 soundworks.server.start();

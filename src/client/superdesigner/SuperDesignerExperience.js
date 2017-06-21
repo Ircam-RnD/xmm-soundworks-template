@@ -6,6 +6,8 @@ import FeaturizerLfo from '../shared/FeaturizerLfo';
 import LikelihoodsRenderer from '../shared/LikelihoodsRenderer';
 import { sounds } from  '../shared/config';
 import AudioEngine from '../shared/AudioEngine';
+import SimpleAudioEngine from '../shared/SimpleAudioEngine';
+import AutoMotionTrigger from '../shared/AutoMotionTrigger';
 
 const audioContext = soundworks.audioContext;
 
@@ -187,17 +189,19 @@ class DesignerView extends soundworks.CanvasView {
     });
   }
 
-  onRecord(callback) {
+  onArm(callback) {
     this.installEvents({
       'click #recBtn': () => {
         const rec = this.$el.querySelector('#recBtn');
-        if (!rec.classList.contains('active')) {
-          rec.innerHTML = 'STOP';
-          rec.classList.add('active');
-          callback('record');
+        if (!rec.classList.contains('armed')) {
+          rec.innerHTML = 'ARMED';
+          rec.classList.add('armed');
+          // rec.classList.remove('recording');
+          callback('arm');
         } else {
-          rec.innerHTML = 'REC';
+          rec.innerHTML = 'STOP';
           rec.classList.remove('active');
+          rec.classList.remove('armed');
           callback('stop')
         }
       }
@@ -272,7 +276,7 @@ class DesignerExperience extends soundworks.Experience {
 
     this.view = new DesignerView(viewTemplate, viewModel, {}, {
       preservePixelRatio: true,
-      className: 'designer'
+      className: 'superdesigner'
     });
 
     this.view.model.assetsDomain = this.sharedConfig.get('assetsDomain');
@@ -280,7 +284,9 @@ class DesignerExperience extends soundworks.Experience {
     this.show().then(() => {
 
       this._onConfig = this._onConfig.bind(this);
-      this._onRecord = this._onRecord.bind(this);
+      this._onArm = this._onArm.bind(this);
+      this._autoStartRecord = this._autoStartRecord.bind(this);
+      this._autoStopRecord = this._autoStopRecord.bind(this);
       this._onSendPhrase = this._onSendPhrase.bind(this);
       this._onClearLabel = this._onClearLabel.bind(this);
       this._onClearModel = this._onClearModel.bind(this);
@@ -291,7 +297,7 @@ class DesignerExperience extends soundworks.Experience {
       this._enableSounds = this._enableSounds.bind(this);
 
       this.view.onConfig(this._onConfig);
-      this.view.onRecord(this._onRecord);
+      this.view.onArm(this._onArm);
       this.view.onSendPhrase(this._onSendPhrase);
       this.view.onClearLabel(this._onClearLabel);
       this.view.onClearModel(this._onClearModel);
@@ -325,6 +331,14 @@ class DesignerExperience extends soundworks.Experience {
       this._onOffDecoder.connect(this._xmmDecoder);
       this._devicemotionIn.start();
 
+      this.autoTrigger = new AutoMotionTrigger({
+        highThresh: 0.6,
+        lowThresh: 0.4,
+        offDelay: 300,
+        startCallback: this._autoStartRecord,
+        stopCallback: this._autoStopRecord,
+      });
+
       // initialize rendering
       this.renderer = new LikelihoodsRenderer(100);
       this.view.addRenderer(this.renderer);
@@ -333,9 +347,10 @@ class DesignerExperience extends soundworks.Experience {
       this.audioEngine = new AudioEngine(this.audioBufferManager.data);
       this.audioEngine.start();
 
-    if (this.motionInput.isAvailable('devicemotion')) {
-      this.motionInput.addListener('devicemotion', this._motionCallback);
-    }
+      if (this.motionInput.isAvailable('devicemotion')) {
+        this.motionInput.addListener('devicemotion', this._motionCallback);
+      }
+  
       //----------------- RECEIVE -----------------//
       this.receive('model', this._onReceiveModel);
     });
@@ -345,22 +360,50 @@ class DesignerExperience extends soundworks.Experience {
     this.send('configuration', { type: type, config: config });
   }
 
-  _onRecord(cmd) {
+  _onArm(cmd) {
     switch (cmd) {
-      case 'record':
-        this._onOffDecoder.setState('off');
-        const labels = this.view.$el.querySelector('#labelSelect');
-        this.likeliest = labels.options[labels.selectedIndex].text;
-        this.audioEngine.fadeToNewSound(this.labels.indexOf(this.likeliest));
-        this._phraseRecorder.start();
+      case 'arm':
+        this.autoTrigger.setState('on');
         break;
 
       case 'stop':
-        this._phraseRecorder.stop();
-        this._onOffDecoder.setState('on');
+        this._autoStopRecord();
         break;
     }
   }
+
+  _autoStartRecord() {
+    // set to play currently selected sound by interrupting recognition
+    // and forcing current label
+    this._onOffDecoder.setState('off');
+    const labels = this.view.$el.querySelector('#labelSelect');
+    this.likeliest = labels.options[labels.selectedIndex].text;
+    this.audioEngine.fadeToNewSound(this.labels.indexOf(this.likeliest));
+
+    // start recording
+    this._phraseRecorder.start();
+
+    // update view
+    const rec = this.view.$el.querySelector('#recBtn');
+    rec.innerHTML = 'STOP';
+    rec.classList.add('active');
+  }
+
+  _autoStopRecord() {
+    // stop recording
+    this._phraseRecorder.stop();
+
+    // enable recognition back
+    this._onOffDecoder.setState('on');
+
+    // update view
+    const rec = this.view.$el.querySelector('#recBtn');
+    rec.innerHTML = 'REC';
+    rec.classList.remove('active', 'armed');
+    this.autoTrigger.setState('off');
+  }
+
+  //=============================================//
 
   _onSendPhrase(label) {
     this._phraseRecorder.setPhraseLabel(label);
@@ -447,6 +490,7 @@ class DesignerExperience extends soundworks.Experience {
   }
 
   _intensityCallback(values) {
+    this.autoTrigger.push(values[0]);
     this.audioEngine.setGainFromIntensity(values[0]);
   }
 

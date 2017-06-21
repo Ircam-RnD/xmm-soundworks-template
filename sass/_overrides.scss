@@ -35,7 +35,7 @@ $maxWidth: 800px;
   padding-top: $eltBottomMargin;
 }
 
-.designer {
+.designer, .superdesigner {
   .section-top {
     padding-top: $navHeight + $eltBottomMargin;
   }
@@ -61,7 +61,7 @@ $maxWidth: 800px;
   }
 }
 
-.player, .designer {
+.player, .designer, .superdesigner {
 
   $recHeight: 100px;
   $eltHeight: 30px;
@@ -273,8 +273,12 @@ $maxWidth: 800px;
     height: $recHeight;
   }
 
-  #recBtn.active {
+  #recBtn.active, #recBtn.armed.active {
     background-color: #d00;
+  }
+
+  #recBtn.armed {
+    background-color: #d77;
   }
 
   #sound-onoff.active, #intensity-onoff.active {

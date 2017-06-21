@@ -37,12 +37,12 @@ class MvAvrg{
 //========================= the audio engine class : =========================//
 
 export default class AudioEngine {
-	constructor(classes) {
+	constructor(sounds) {
 		this._fadeInTime = 0.5;
     this._fadeOutTime = 1;
 
-    this.labels = Object.keys(classes);
-    this.buffers = classes;
+    this.labels = Object.keys(sounds);
+    this.buffers = sounds;
     this.audioContext = audioContext;
 
     this.master = audioContext.createGain();
